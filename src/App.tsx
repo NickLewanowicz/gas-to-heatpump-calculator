@@ -108,14 +108,30 @@ export default function App() {
               to find the amount of kwh needed for the given heat pump to heat
               your home at for that range in the average year{' '}
             </li>
+            <li>
+              We can derrive the proportion of your annual energy budget needed
+              on any given day by calculating the proportion of heating degrees
+              that day occupies of the total degree days in the data set
+            </li>
+            <li>
+              Once we know the amount of energy needed for a given day
+              (explained in #4) we can use the provided heat pump capacity to
+              identify what proportion of that energy can be provided by the
+              heat pump and inversely the proportion provided by AUX heating, we
+              will divide the heat pump energy by the COP at that days minimum
+              temperature to reflect is ability to have greater then 100%
+              efficency.
+            </li>
           </ol>
           <ul>
-            <h3>Assumptions</h3>
-            <li>
-              This calculator does not consider heatpump capacity and the use of
-              auxiliary heat, it assumes your heatpump provides enough heat at
-              all temperatures
-            </li>
+            <h3>WARNING</h3>
+            This calculator is just something I threw together in my spare time.
+            If its something of interest to people then I wouldnt mind throwing
+            some time into adding instructions to add your own regions data or
+            increasing granularity of data from days to hours. Because the data
+            is daily I take the "worst case senario" and assume the heatpump
+            opperates at the minimum COP and capacity for the days minimum
+            temperature and ignore any variance that might exist.
           </ul>
           <p></p>
 
