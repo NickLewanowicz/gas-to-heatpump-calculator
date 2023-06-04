@@ -1,7 +1,5 @@
-import React, { PureComponent, useEffect, useState } from 'react';
-import { LineChart, Line } from 'recharts';
+import React, { useEffect, useState } from 'react';
 
-// import './style.css';
 import data, { DailyWeather } from './data';
 
 export default function App() {
@@ -9,7 +7,6 @@ export default function App() {
   const totalDays = weather.length;
 
   const cmGasToKwh = 10.55;
-  const cops = [1, 2, 3];
   const [indoor, setIndoor] = useState(22);
   const [designTemp, setDesignTemp] = useState(-30);
   const [designBtu, setDesignBtu] = useState(48000);
@@ -58,284 +55,283 @@ export default function App() {
   }, [cop]);
 
   return (
-    <main>
+    <main className="container">
+      {renderNav()}
       <article>
-        <header>
-          <h1>Heat Pump Calculator for Ottawa</h1>
+        <details>
+          <summary>What is this?</summary>
           <p>
             Tool for estimating the energy and cost savings from using a heat
             pump
           </p>
-        </header>
-        <aside>
-          <h2>Overall Data</h2>
-          <p>Total days in data set: {totalDays}</p>
-          <p>
-            Data span from: {weather[0].datetime.toDateString()} -
-            {weather[weather.length - 1].datetime.toDateString()} (excluding
-            June, July, August)
-          </p>
-          <p>
-            <i>
-              Data was pulled from{' '}
-              <a target="_blank" href="http://visualcrossing.com">
-                visualcrossing.com
-              </a>{' '}
-              for years 2019-2023
-            </i>
-          </p>
-        </aside>
-        <br />
-        <aside>
-          <h2>Theoretical explanation</h2>
-          <ol>
-            <li>
-              Heat loss is directly proportional to heating degrees so by using
-              historical weather data in Ottawa we can identify both <b>(1)</b>{' '}
-              the proportion of days that you will be within a temperature
-              window and <b>(2)</b> the aproximate proportion of energy will be
-              used at the given temperature window
-            </li>
-            <li>
-              By providing your natural gas consumption and furnace efficiency
-              we can convert it to kwh and use that as a baseline for the amount
-              of energy you would otherwise consume with a resitive heat system
-              (baseboard heat){' '}
-            </li>
-            <li>
-              By providing the heat pump COPs we simply need to divide the heat
-              energy needed for a given threshold by the COP at that temperature
-              to find the amount of kwh needed for the given heat pump to heat
-              your home at for that range in the average year{' '}
-            </li>
-            <li>
-              We can derrive the proportion of your annual energy budget needed
-              on any given day by calculating the proportion of heating degrees
-              that day occupies of the total degree days in the data set
-            </li>
-            <li>
-              Once we know the amount of energy needed for a given day
-              (explained in #4) we can use the provided heat pump capacity to
-              identify what proportion of that energy can be provided by the
-              heat pump and inversely the proportion provided by AUX heating, we
-              will divide the heat pump energy by the COP at that days minimum
-              temperature to reflect is ability to have greater then 100%
-              efficency.
-            </li>
-          </ol>
-          <ul>
-            <h3>WARNING</h3>
-            This calculator is just something I threw together in my spare time.
-            If its something of interest to people then I wouldnt mind throwing
-            some time into adding instructions to add your own regions data or
-            increasing granularity of data from days to hours. Because the data
-            is daily I take the "worst case senario" and assume the heatpump
-            opperates at the minimum COP and capacity for the days minimum
-            temperature and ignore any variance that might exist.
-          </ul>
-          <p></p>
-
-          <p>
-            <i>
-              Data was pulled from{' '}
-              <a target="_blank" href="http://visualcrossing.com">
-                visualcrossing.com
-              </a>{' '}
-              for years 2019-2023
-            </i>
-          </p>
-        </aside>
+        </details>
+        <details>
+          <summary>What data is being used?</summary>
+          {renderDataOverview()}
+        </details>
+        <details>
+          <summary>
+            How are you using this data to predict energy usage?
+          </summary>
+          {renderExplanation()}
+        </details>
       </article>
-      <section>
-        <h2>Gas to Hydro</h2>
-        <p>
-          <table>
-            <tr>
-              <td>Cost of gas (per cubic meter)</td>
-              <td>
-                <p>
-                  <input
-                    type="number"
-                    value={costGas}
-                    onChange={(v) => doGasCost(Number(v.currentTarget.value))}
-                  />
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td>Gas usage (cubic meter)</td>
-              <td>
-                <p>
-                  <input
-                    value={gasUsage}
-                    onChange={(v) => setGasUsage(Number(v.currentTarget.value))}
-                  />
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td>Furnace efficiency (0-1)</td>
-              <td>
-                <p>
-                  <input
-                    type="number"
-                    value={furnaceEfficiency}
-                    onChange={(v) =>
-                      setFurnaceEfficiency(Number(v.currentTarget.value))
-                    }
-                  />
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td>Cost per kwh ($)</td>
-              <td>
-                <p>
-                  <input
-                    type="number"
-                    value={costKwh}
-                    onChange={(v) => doKwhCost(Number(v.currentTarget.value))}
-                  />
-                </p>
-              </td>
-            </tr>
-          </table>
-        </p>
-        <h2>Heating Design Load</h2>
-        <p>
-          <table>
-            <tr>
-              <td>Heating Design Load (BTUs)</td>
-              <td>
-                <p>
-                  <input
-                    type="number"
-                    value={designBtu}
-                    onChange={(v) =>
-                      setDesignBtu(Number(v.currentTarget.value))
-                    }
-                  />
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td>Design temp (coldest 1% in c)</td>
-              <td>
-                <p>
-                  <input
-                    value={designTemp}
-                    onChange={(v) =>
-                      setDesignTemp(Number(v.currentTarget.value))
-                    }
-                  />
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td>Indoor set temperature (c)</td>
-              <td>
-                <p>
-                  <input
-                    type="number"
-                    value={indoor}
-                    onChange={(v) => setIndoor(Number(v.currentTarget.value))}
-                  />
-                </p>
-              </td>
-            </tr>
-          </table>
-        </p>
+      <div>
+        <article>
+          <div className="grid">
+            <div>
+              <h3>Heating consumption/cost</h3>
+              <p>
+                <table>
+                  <tr>
+                    <td>Cost of gas (per cubic meter)</td>
+                    <td>
+                      <p>
+                        <input
+                          type="number"
+                          value={costGas}
+                          onChange={(v) =>
+                            doGasCost(Number(v.currentTarget.value))
+                          }
+                        />
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Gas usage (cubic meter)</td>
+                    <td>
+                      <p>
+                        <input
+                          value={gasUsage}
+                          onChange={(v) =>
+                            setGasUsage(Number(v.currentTarget.value))
+                          }
+                        />
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Furnace efficiency (0-1)</td>
+                    <td>
+                      <p>
+                        <input
+                          type="number"
+                          value={furnaceEfficiency}
+                          onChange={(v) =>
+                            setFurnaceEfficiency(Number(v.currentTarget.value))
+                          }
+                        />
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Cost per kwh ($)</td>
+                    <td>
+                      <p>
+                        <input
+                          type="number"
+                          value={costKwh}
+                          onChange={(v) =>
+                            doKwhCost(Number(v.currentTarget.value))
+                          }
+                        />
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </p>
+            </div>
+            <div>
+              <h3>Heating Design Load</h3>
+              <p>
+                <table>
+                  <tr>
+                    <td>Heating Design Load (BTUs)</td>
+                    <td>
+                      <p>
+                        <input
+                          type="number"
+                          value={designBtu}
+                          onChange={(v) =>
+                            setDesignBtu(Number(v.currentTarget.value))
+                          }
+                        />
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Design temp (coldest 1% in c)</td>
+                    <td>
+                      <p>
+                        <input
+                          value={designTemp}
+                          onChange={(v) =>
+                            setDesignTemp(Number(v.currentTarget.value))
+                          }
+                        />
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Indoor set temperature (c)</td>
+                    <td>
+                      <p>
+                        <input
+                          type="number"
+                          value={indoor}
+                          onChange={(v) =>
+                            setIndoor(Number(v.currentTarget.value))
+                          }
+                        />
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </p>
+            </div>
+          </div>
 
-        <p>Equivalent energy in kwh: {kwhEquivalent}</p>
+          <h3>Heat Pump Efficiency</h3>
+          <figure>
+            <table>
+              <thead>
+                <td>Threshold °C</td>
+                <td>COP at temp</td>
+                <td>BTU at temp</td>
+              </thead>
+              {rows.map((val, i) => {
+                return (
+                  <tr>
+                    <td>{`${val.label} °C`}</td>
+                    <td>
+                      <input
+                        type="number"
+                        value={cop[i]}
+                        onChange={(v) => {
+                          doCopChange(Number(v.currentTarget.value), i);
+                        }}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        value={cap[i]}
+                        onChange={(v) => {
+                          doCapChange(Number(v.currentTarget.value), i);
+                        }}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </table>
+          </figure>
+        </article>
+        <article>
+          <h3>Results Breakdown</h3>
+          <figure>
+            <table role="grid">
+              <thead>
+                <td></td>
+                <td>Consumption</td>
+                <td>Cost</td>
+              </thead>
 
-        <p>Cost of natural gas: ${costGas * gasUsage}</p>
-        <p>Cost of resistive heat: ${Math.round(kwhEquivalent * costKwh)}</p>
-        <p>
-          Consumption of heat pump:{' '}
-          {rows.reduce((acc, row) => acc + row.heatPumpKwhConsumed, 0)}kwh
-        </p>
-        <p>
-          Consumption of aux:{' '}
-          {rows.reduce((acc, row) => acc + row.resistiveKwhConsumed, 0)}kwh
-        </p>
-        <p>
-          Consumption of heat pump + aux:{' '}
-          {rows.reduce(
-            (acc, row) =>
-              acc + row.heatPumpKwhConsumed + row.resistiveKwhConsumed,
-            0
-          )}
-          kwh
-        </p>
-        <p>
-          Cost of heatpump + aux: $
-          {Math.round(
-            rows.reduce(
-              (acc, { heatPumpKwhConsumed, resistiveKwhConsumed }) =>
-                acc + heatPumpKwhConsumed + resistiveKwhConsumed,
-              0
-            ) * costKwh
-          )}
-        </p>
-
-        <table>
-          <thead>
-            <td>Threshold °C</td>
-            <td>% of days / heating degree</td>
-            <td>Energy Consumption</td>
-            <td>COP at temp</td>
-            <td>BTU at temp</td>
-          </thead>
-          {rows.map((val, i) => {
-            const daysBelowNum = val.num;
-            const percent = val.percentDays.toLocaleString(undefined, {
-              style: 'percent',
-              minimumFractionDigits: 2,
-            });
-            const heatingDeltaPercent = val.heatingPercent.toLocaleString(
-              undefined,
-              {
-                style: 'percent',
-                minimumFractionDigits: 2,
-              }
-            );
-
-            // const resitiveEnergy = Math.round(
-            //   (heatingDelta / heatingDegrees) * kwhEquivalent
-            // );
-            // const gas = Math.round(gasUsage * (heatingDelta / heatingDegrees));
-            const heatPumpEnergy = val.heatPumpEnergy;
-
-            return (
               <tr>
-                <td>{`${val.label} °C`}</td>
+                Natural Gas
+                <td>{gasUsage} m3</td>
+                <td>${costGas * gasUsage}</td>
+              </tr>
+              <tr>
+                Baseboard Heat
+                <td>{kwhEquivalent} kWh</td>
+                <td> ${Math.round(kwhEquivalent * costKwh)}</td>
+              </tr>
+              <tr>
+                Heat Pump + backup
                 <td>
-                  {percent} / {heatingDeltaPercent}
+                  {rows.reduce(
+                    (acc, row) =>
+                      acc + row.heatPumpKwhConsumed + row.resistiveKwhConsumed,
+                    0
+                  )}
+                  kWh
                 </td>
-                <td>{`HP: ${val.heatPumpEnergy} KWH | AUX:${val.resistiveKwhConsumed}KWH`}</td>
                 <td>
-                  <input
-                    type="number"
-                    value={cop[i]}
-                    onChange={(v) => {
-                      doCopChange(Number(v.currentTarget.value), i);
-                    }}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    value={cap[i]}
-                    onChange={(v) => {
-                      doCapChange(Number(v.currentTarget.value), i);
-                    }}
-                  />
+                  $
+                  {Math.round(
+                    rows.reduce(
+                      (acc, { heatPumpKwhConsumed, resistiveKwhConsumed }) =>
+                        acc + heatPumpKwhConsumed + resistiveKwhConsumed,
+                      0
+                    ) * costKwh
+                  )}
                 </td>
               </tr>
-            );
-          })}
-        </table>
-      </section>
+            </table>
+          </figure>
+          <p>
+            <em data-tooltip="Predicted kWh used by heatpump">
+              Heat pump consumption:
+            </em>{' '}
+            {rows.reduce((acc, row) => acc + row.heatPumpKwhConsumed, 0)} kWh
+          </p>
+          <p>
+            <em data-tooltip="Predicted kWh used by backup heat">
+              Aux consumption:
+            </em>{' '}
+            {rows.reduce((acc, row) => acc + row.resistiveKwhConsumed, 0)}kwh
+          </p>
+          <figure>
+            <table role="grid">
+              <thead>
+                <td>Threshold °C</td>
+                <td>% of days / heating degree</td>
+                <td>Energy Consumption</td>
+                <td>Heat Pump Performance</td>
+              </thead>
+              {rows.map((val, i) => {
+                const daysBelowNum = val.num;
+                const percent = val.percentDays.toLocaleString(undefined, {
+                  style: 'percent',
+                  minimumFractionDigits: 2,
+                });
+                const heatingDeltaPercent = val.heatingPercent.toLocaleString(
+                  undefined,
+                  {
+                    style: 'percent',
+                    minimumFractionDigits: 2,
+                  }
+                );
+
+                // const resitiveEnergy = Math.round(
+                //   (heatingDelta / heatingDegrees) * kwhEquivalent
+                // );
+                // const gas = Math.round(gasUsage * (heatingDelta / heatingDegrees));
+                const heatPumpEnergy = val.heatPumpEnergy;
+
+                return (
+                  <tr>
+                    <td>{`${val.label} °C`}</td>
+                    <td>
+                      {percent} / {heatingDeltaPercent}
+                    </td>
+                    <td>
+                      HP: {val.heatPumpEnergy}kWh <br /> AUX:
+                      {val.resistiveKwhConsumed}kWh
+                    </td>
+                    <td>
+                      {cop[i]}COP
+                      <br />
+                      {cap[i]} BTUs
+                    </td>
+                  </tr>
+                );
+              })}
+            </table>
+          </figure>
+        </article>
+      </div>
     </main>
   );
 
@@ -430,5 +426,98 @@ export default function App() {
       resistiveHeat,
       heatPump,
     };
+  }
+
+  function renderNav() {
+    return (
+      <div>
+        <nav>
+          <ul>
+            <li>
+              <strong>Heat Pump Calculator</strong>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    );
+  }
+
+  function renderDataOverview() {
+    return (
+      <div>
+        <h2>Ottawa Weather Data</h2>
+        <p>Total days in data set: {totalDays}</p>
+        <p>
+          Data span from: {weather[0].datetime.toDateString()} -
+          {weather[weather.length - 1].datetime.toDateString()} (excluding June,
+          July, August)
+        </p>
+        <p>
+          <i>
+            Data was pulled from{' '}
+            <a target="_blank" href="http://visualcrossing.com">
+              visualcrossing.com
+            </a>{' '}
+            for years 2019-2023
+          </i>
+        </p>
+      </div>
+    );
+  }
+
+  function renderExplanation() {
+    return (
+      <div>
+        <h2>Theoretical explanation</h2>
+        <ol>
+          <li>
+            Heat loss is directly proportional to heating degrees so by using
+            historical weather data in Ottawa we can identify both <b>(1)</b>{' '}
+            the proportion of days that you will be within a temperature window
+            and <b>(2)</b> the aproximate proportion of energy will be used at
+            the given temperature window
+          </li>
+          <li>
+            By providing your natural gas consumption and furnace efficiency we
+            can convert it to kwh and use that as a baseline for the amount of
+            energy you would otherwise consume with a resitive heat system
+            (baseboard heat){' '}
+          </li>
+          <li>
+            By providing the heat pump COPs we simply need to divide the heat
+            energy needed for a given threshold by the COP at that temperature
+            to find the amount of kwh needed for the given heat pump to heat
+            your home at for that range in the average year{' '}
+          </li>
+          <li>
+            We can derrive the proportion of your annual energy budget needed on
+            any given day by calculating the proportion of heating degrees that
+            day occupies of the total degree days in the data set
+          </li>
+          <li>
+            Once we know the amount of energy needed for a given day (explained
+            in #4) we can use the provided heat pump capacity to identify what
+            proportion of that energy can be provided by the heat pump and
+            inversely the proportion provided by AUX heating, we will divide the
+            heat pump energy by the COP at that days minimum temperature to
+            reflect is ability to have greater then 100% efficency.
+          </li>
+        </ol>
+        <ul>
+          <h3>Caveats</h3>
+          This calculator is just something I threw together in my spare time.
+          If its something of interest to people then I wouldnt mind throwing
+          some time into adding instructions to add your own regions data or
+          increasing granularity of data from days to hours. Because the data is
+          daily I take the "worst case senario" and assume the heatpump
+          opperates at the minimum COP and capacity for the days minimum
+          temperature and ignore any variance that might exist.
+        </ul>
+      </div>
+    );
+  }
+
+  function renderHeatPumpInputTable() {
+    return null;
   }
 }
