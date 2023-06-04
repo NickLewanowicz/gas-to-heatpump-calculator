@@ -55,7 +55,7 @@ export default function App() {
   }, [cop]);
 
   return (
-    <main className="container">
+    <div className="container">
       {renderNav()}
       <article>
         <details>
@@ -332,7 +332,7 @@ export default function App() {
           </figure>
         </article>
       </div>
-    </main>
+    </div>
   );
 
   function getRows(thresholds: Number[], weather: DailyWeather[]) {
