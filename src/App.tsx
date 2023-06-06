@@ -203,7 +203,7 @@ export default function App() {
               </thead>
 
               <tr>
-                Natural Gas
+                Fossil Fuel
                 <td>{gasUsage} m3</td>
                 <td>${costGas * gasUsage}</td>
               </tr>
@@ -213,7 +213,7 @@ export default function App() {
                 <td> ${Math.round(kwhEquivalent * costKwh)}</td>
               </tr>
               <tr>
-                Heat Pump + backup
+                Heat Pump + electric backup
                 <td>
                   {rows.reduce(
                     (acc, row) =>
@@ -230,6 +230,31 @@ export default function App() {
                         acc + heatPumpKwhConsumed + resistiveKwhConsumed,
                       0
                     ) * costKwh
+                  )}
+                </td>
+              </tr>
+              <tr>
+                Duel Fuel
+                <td>
+                  {rows.reduce((acc, row) => acc + row.heatPumpDuelFuel, 0)}
+                  kWh
+                  <br />
+                  {Math.round(
+                    rows.reduce((acc, row) => acc + row.fossilFuelKwh, 0) /
+                      cmGasToKwh
+                  )}{' '}
+                  m3
+                </td>
+                <td>
+                  $
+                  {Math.round(
+                    rows.reduce(
+                      (acc, { heatPumpDuelFuel, fossilFuelKwh }) =>
+                        acc +
+                        heatPumpDuelFuel * costKwh +
+                        (fossilFuelKwh / cmGasToKwh) * costGas,
+                      0
+                    )
                   )}
                 </td>
               </tr>
@@ -340,20 +365,34 @@ export default function App() {
         return acc + (indoor - (day.tempmax + day.tempmin) / 2);
       }, 0);
 
-      const { resistiveKwhConsumed, heatPumpKwhConsumed } = daysBelow.reduce(
+      const {
+        resistiveKwhConsumed,
+        heatPumpKwhConsumed,
+        heatPumpDuelFuel,
+        fossilFuelKwh,
+      } = daysBelow.reduce(
         (acc, day, j) => {
           const { cop: dayCop, cap: dayCap } = getEfficiencyAtTemp(day.temp);
-          const { resistiveHeat: dayResitiveKwh, heatPump: dayHeatPumpKwh } =
-            getEnergySource(day, dayCap, dayCop);
-          if (dayCop == 0 || dayCap < 0) {
-            console.log(dayCap, dayCop);
-          }
+          const {
+            resistiveHeat: dayResitiveKwh,
+            heatPump: dayHeatPumpKwh,
+            heatPumpDuelFuel: dayHeatPumpDuelFuel,
+            fossilFuelKwh: dayFossilFuelKwh,
+          } = getEnergySource(day, dayCap, dayCop);
+
           return {
             resistiveKwhConsumed: acc.resistiveKwhConsumed + dayResitiveKwh,
             heatPumpKwhConsumed: acc.heatPumpKwhConsumed + dayHeatPumpKwh,
+            heatPumpDuelFuel: acc.heatPumpDuelFuel + dayHeatPumpDuelFuel,
+            fossilFuelKwh: acc.fossilFuelKwh + dayFossilFuelKwh,
           };
         },
-        { resistiveKwhConsumed: 0, heatPumpKwhConsumed: 0 }
+        {
+          resistiveKwhConsumed: 0,
+          heatPumpKwhConsumed: 0,
+          heatPumpDuelFuel: 0,
+          fossilFuelKwh: 0,
+        }
       );
 
       const daysBelowNum = daysBelow.length;
@@ -392,6 +431,8 @@ export default function App() {
         gains: costSavings,
         resistiveKwhConsumed,
         heatPumpKwhConsumed,
+        heatPumpDuelFuel,
+        fossilFuelKwh,
       };
     });
   }
@@ -405,7 +446,12 @@ export default function App() {
     day: DailyWeather,
     btusAtTemp: number,
     copAtTemp: number
-  ): { resistiveHeat: number; heatPump: number } {
+  ): {
+    resistiveHeat: number;
+    heatPump: number;
+    heatPumpDuelFuel: number;
+    fossilFuelKwh: number;
+  } {
     const requiredBtus = getDesignLoadAtTemp(day.tempmin);
     const heatingDegreesToday = indoor - (day.tempmax + day.tempmin) / 2;
     const proportionOfHeatingDegrees = heatingDegreesToday / heatingDegrees;
@@ -417,10 +463,14 @@ export default function App() {
     const heatPump = Math.round(
       (proportionHeatPump * amountOfEnergyNeeded) / copAtTemp
     );
-    // console.log(btusAtTemp);
+    const heatPumpDuelFuel = proportionHeatPump === 1 ? heatPump : 0;
+    const fossilFuelKwh = proportionHeatPump === 1 ? 0 : amountOfEnergyNeeded;
+
     return {
       resistiveHeat,
       heatPump,
+      heatPumpDuelFuel,
+      fossilFuelKwh,
     };
   }
 
