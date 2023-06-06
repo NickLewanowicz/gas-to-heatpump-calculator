@@ -10,8 +10,8 @@ export default function App() {
   const [indoor, setIndoor] = useState(22);
   const [designTemp, setDesignTemp] = useState(-30);
   const [designBtu, setDesignBtu] = useState(48000);
-  const [cop, setCop] = useState([3.5, 3, 2, 1.8, 1.2]);
-  const [cap, setCap] = useState([35000, 35000, 24000, 28000, 16000]);
+  const [cop, setCop] = useState([3.5, 3, 2, 1.8, 1.2, 1]);
+  const [cap, setCap] = useState([35000, 35000, 24000, 28000, 16000, 0]);
   const [gasUsage, setGasUsage] = useState(1000);
   const [furnaceEfficiency, setFurnaceEfficiency] = useState(0.96);
   const [costGas, setCostGas] = useState(0.45);
@@ -190,42 +190,7 @@ export default function App() {
               </p>
             </div>
           </div>
-
-          <h3>Heat Pump Efficiency</h3>
-          <figure>
-            <table>
-              <thead>
-                <td>Threshold °C</td>
-                <td>COP at temp</td>
-                <td>BTU at temp</td>
-              </thead>
-              {rows.map((val, i) => {
-                return (
-                  <tr>
-                    <td>{`${val.label} °C`}</td>
-                    <td>
-                      <input
-                        type="number"
-                        value={cop[i]}
-                        onChange={(v) => {
-                          doCopChange(Number(v.currentTarget.value), i);
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        value={cap[i]}
-                        onChange={(v) => {
-                          doCapChange(Number(v.currentTarget.value), i);
-                        }}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </table>
-          </figure>
+          {renderHeatPumpInputTable()}
         </article>
         <article>
           <h3>Results Breakdown</h3>
@@ -317,7 +282,7 @@ export default function App() {
                       {percent} / {heatingDeltaPercent}
                     </td>
                     <td>
-                      HP: {val.heatPumpEnergy}kWh <br /> AUX:
+                      HP: {val.heatPumpKwhConsumed}kWh <br /> AUX:
                       {val.resistiveKwhConsumed}kWh
                     </td>
                     <td>
@@ -335,7 +300,35 @@ export default function App() {
     </div>
   );
 
-  function getRows(thresholds: Number[], weather: DailyWeather[]) {
+  function getRows(thresholds: number[], weather: DailyWeather[]) {
+    function getEfficiencyAtTemp(temp: number) {
+      const arr: { temp: number; cap: number; cop: number }[] = thresholds.map(
+        (val, i) => ({
+          temp: val,
+          cap: cap[i],
+          cop: cop[i],
+        })
+      );
+
+      const minIndex = Math.max(
+        arr.findIndex((val) => val.temp < temp),
+        1
+      );
+
+      const capSlope =
+        (cap[minIndex] - cap[minIndex - 1]) /
+        (thresholds[minIndex] - thresholds[minIndex - 1]);
+      const copSlope =
+        (cop[minIndex] - cop[minIndex - 1]) /
+        (thresholds[minIndex] - thresholds[minIndex - 1]);
+      const capIntercept = cap[minIndex] - capSlope * thresholds[minIndex];
+      const copIntercept = cop[minIndex] - copSlope * thresholds[minIndex];
+
+      return {
+        cap: capSlope * temp + capIntercept,
+        cop: copSlope * temp + copIntercept,
+      };
+    }
     return thresholds.map((val, i) => {
       const max = val;
       const min = thresholds[i + 1] || -100;
@@ -349,9 +342,12 @@ export default function App() {
 
       const { resistiveKwhConsumed, heatPumpKwhConsumed } = daysBelow.reduce(
         (acc, day, j) => {
+          const { cop: dayCop, cap: dayCap } = getEfficiencyAtTemp(day.temp);
           const { resistiveHeat: dayResitiveKwh, heatPump: dayHeatPumpKwh } =
-            getEnergySource(day, cap[i], cop[i]);
-
+            getEnergySource(day, dayCap, dayCop);
+          if (dayCop == 0 || dayCap < 0) {
+            console.log(dayCap, dayCop);
+          }
           return {
             resistiveKwhConsumed: acc.resistiveKwhConsumed + dayResitiveKwh,
             heatPumpKwhConsumed: acc.heatPumpKwhConsumed + dayHeatPumpKwh,
@@ -364,9 +360,9 @@ export default function App() {
       const percent = Number(daysBelowNum / totalDays);
       const heatingDeltaPercent = Number(heatingDelta / heatingDegrees);
 
-      const resitiveEnergy = Math.round(
-        (heatingDelta / heatingDegrees) * kwhEquivalent
-      );
+      // const resitiveEnergy = Math.round(
+      //   (heatingDelta / heatingDegrees) * kwhEquivalent
+      // );
       const gas = Math.round(gasUsage * (heatingDelta / heatingDegrees));
       const heatPumpEnergy = Math.round(
         ((heatingDelta / heatingDegrees) * kwhEquivalent) / cop[i]
@@ -518,6 +514,44 @@ export default function App() {
   }
 
   function renderHeatPumpInputTable() {
-    return null;
+    return (
+      <div>
+        <h3>Heat Pump Efficiency</h3>
+        <figure>
+          <table>
+            <thead>
+              <td>Temp °C</td>
+              <td>COP at temp</td>
+              <td>BTU at temp</td>
+            </thead>
+            {rows.slice().map((val, i) => {
+              return (
+                <tr>
+                  <td>{`${val.max} °C`}</td>
+                  <td>
+                    <input
+                      type="number"
+                      value={cop[i]}
+                      onChange={(v) => {
+                        doCopChange(Number(v.currentTarget.value), i);
+                      }}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      value={cap[i]}
+                      onChange={(v) => {
+                        doCapChange(Number(v.currentTarget.value), i);
+                      }}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
+          </table>
+        </figure>
+      </div>
+    );
   }
 }
