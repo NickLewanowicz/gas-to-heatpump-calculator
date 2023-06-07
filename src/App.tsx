@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
 import { DailyWeather, ottawaWeather } from './data';
-import { useHeatpumps } from './hooks/useHeatpumps/hook';
 
 export default function App() {
   const weather = ottawaWeather.slice();
@@ -19,7 +18,6 @@ export default function App() {
   const [costKwh, setCostkwh] = useState(0.1);
   const thresholds = [indoor, 8.33, -8.33, -15, -30];
 
-  const { heatpumps } = useHeatpumps();
   const kwhEquivalent = gasUsage * cmGasToKwh * furnaceEfficiency;
   const heatingDegrees = weather.reduce((acc, day, i) => {
     return acc + (indoor - (day.tempmax + day.tempmin) / 2);
