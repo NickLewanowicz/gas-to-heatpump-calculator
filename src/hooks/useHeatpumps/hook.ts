@@ -30,8 +30,7 @@ export function useHeatpumps(): HeatpumpInterface {
     deleteHeatpump,
   };
   function updateHeatpump(heatpump: Partial<Heatpump>) {
-    let newHeatpumps = heatpumps.
-    setHeatpumps
+    let newHeatpumps = heatpumps;
   }
   function addHeatpump() {}
   function deleteHeatpump(id: number) {}
