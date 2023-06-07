@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 
-import data, { DailyWeather } from './data';
+import { DailyWeather, ottawaWeather } from './data';
 
 export default function App() {
-  const weather = data.slice();
+  const weather = ottawaWeather.slice();
   const totalDays = weather.length;
 
   const cmGasToKwh = 10.55;
