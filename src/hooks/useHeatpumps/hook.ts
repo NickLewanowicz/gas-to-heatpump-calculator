@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 export interface Heatpump {
   performance: Performance[];
-  neame: string;
+  name: string;
   id: number;
 }
 
@@ -21,7 +21,9 @@ export interface HeatpumpInterface {
 }
 
 export function useHeatpumps(): HeatpumpInterface {
-  const [heatpumps, setHeatpumps] = useState([]);
+  const [heatpumps, setHeatpumps] = useState([
+    { performance: [], name: '', id: 1 },
+  ]);
 
   return {
     heatpumps,
@@ -30,8 +32,24 @@ export function useHeatpumps(): HeatpumpInterface {
     deleteHeatpump,
   };
   function updateHeatpump(heatpump: Partial<Heatpump>) {
-    let newHeatpumps = heatpumps;
+    setHeatpumps((previousState) => {
+      const newState = previousState.map((pump) =>
+        heatpump.id === pump.id ? { ...pump, ...heatpump } : pump
+      );
+      return newState;
+    });
   }
-  function addHeatpump() {}
-  function deleteHeatpump(id: number) {}
+  function addHeatpump() {
+    setHeatpumps([...heatpumps, initHeatpump()]);
+  }
+  function deleteHeatpump(id: number) {
+    setHeatpumps((previousState) => {
+      const newState = previousState.filter(({ id: curr }) => curr != id);
+      return newState;
+    });
+  }
+
+  function initHeatpump() {
+    return { performance: [], name: '', id: heatpumps.length + 1 };
+  }
 }
