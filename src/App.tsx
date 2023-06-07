@@ -570,14 +570,20 @@ export default function App() {
         <figure>
           <table>
             <thead>
-              <td>Temp °C</td>
+              <td>Temp °C / BTUs</td>
               <td>COP at temp</td>
               <td>BTU at temp</td>
             </thead>
             {rows.slice().map((val, i) => {
               return (
                 <tr>
-                  <td>{`${val.max} °C`}</td>
+                  <td>
+                    {`${val.max} °C`} <br />
+                    {Math.round(
+                      (designBtu / (indoor - -30)) * (indoor - val.max)
+                    )}{' '}
+                    BTUs
+                  </td>
                   <td>
                     <input
                       type="number"
