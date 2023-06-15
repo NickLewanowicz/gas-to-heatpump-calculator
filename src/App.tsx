@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { DailyWeather, ottawaWeather, torontoWeather, Cities } from './data';
 
+import { CapacityChart } from './components/CapacityChart';
 export default function App() {
   const cityDataMap = {
     ottawa: ottawaWeather,
@@ -286,6 +287,7 @@ export default function App() {
             </em>{' '}
             {rows.reduce((acc, row) => acc + row.resistiveKwhConsumed, 0)}kwh
           </p>
+          <CapacityChart data={getCapacityData(rows)} />
           <figure>
             <table role="grid">
               <thead>
@@ -338,6 +340,37 @@ export default function App() {
       </div>
     </div>
   );
+
+  function getCapacityData(rowsForward: ReturnType<typeof getRows>) {
+    const rows = rowsForward.reverse();
+    return {
+      labels: rows.map((row) => String(row.max)),
+      datasets: [
+        {
+          label: 'Capacity',
+          data: cap.reverse(),
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+          yAxisID: 'y',
+        },
+        {
+          label: 'COP',
+          data: cop.reverse(),
+          borderColor: 'rgb(53, 162, 235)',
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+          yAxisID: 'y1',
+        },
+        {
+          label: 'Design Load',
+          fill: true,
+          data: rows.map(({ max }) => getDesignLoadAtTemp(max)),
+          borderColor: 'rgb(253, 262, 35)',
+          backgroundColor: 'rgba(253, 262, 35, 0.1)',
+          yAxisID: 'y',
+        },
+      ],
+    };
+  }
 
   function getRows(thresholds: number[], weather: DailyWeather[]) {
     function getEfficiencyAtTemp(temp: number) {

@@ -8,10 +8,12 @@
     "@types/react-dom": "^18.2.4",
     "@types/react-router-dom": "^5.3.3",
     "@types/recharts": "^2.0.0",
+    "chart.js": "^4.3.0",
     "events": "^3.3.0",
     "gh-pages": "^5.0.0",
     "prop-types": "^15.6.0",
     "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.11.2",
     "recharts": "^2.6.2"
