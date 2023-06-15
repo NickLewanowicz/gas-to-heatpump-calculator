@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
-import { DailyWeather, ottawaWeather } from './data';
+import { DailyWeather, ottawaWeather, torontoWeather } from './data';
 
 export default function App() {
-  const weather = ottawaWeather.slice();
-  const totalDays = weather.length;
+  const cityDataMap = {
+    ottawa: ottawaWeather,
+    toronto: torontoWeather,
+  };
 
   const cmGasToKwh = 10.55;
   const [indoor, setIndoor] = useState(22);
@@ -18,6 +20,7 @@ export default function App() {
   const [costGas, setCostGas] = useState(0.45);
   const [costKwh, setCostkwh] = useState(0.1);
   const thresholds = [indoor, 8.33, -8.33, -15, -30];
+  const weather = cityDataMap[city].slice();
 
   const kwhEquivalent = gasUsage * cmGasToKwh * furnaceEfficiency;
   const heatingDegrees = weather.reduce((acc, day, i) => {
@@ -409,7 +412,7 @@ export default function App() {
       );
 
       const daysBelowNum = daysBelow.length;
-      const percent = Number(daysBelowNum / totalDays);
+      const percent = Number(daysBelowNum / weather.length);
       const heatingDeltaPercent = Number(heatingDelta / heatingDegrees);
 
       // const resitiveEnergy = Math.round(
@@ -504,8 +507,10 @@ export default function App() {
   function renderDataOverview() {
     return (
       <div>
-        <h2>Ottawa Weather Data</h2>
-        <p>Total days in data set: {totalDays}</p>
+        <h2>Weather Data</h2>
+        <p>Total days in data set: </p>
+        <p>Ottawa: {ottawaWeather.length}</p>
+        <p>Toronto: {torontoWeather.length}</p>
         <p>
           Data span from: {weather[0].datetime.toDateString()} -
           {weather[weather.length - 1].datetime.toDateString()} (excluding June,

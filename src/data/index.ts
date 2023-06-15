@@ -1,4 +1,5 @@
 import ottawaWeather from './ottawa';
+import torontoWeather from './toronto';
 
 interface DailyWeather {
   name: string;
@@ -38,4 +39,4 @@ interface DailyWeather {
 
 type Cities = 'ottawa' | 'toronto';
 
-export { ottawaWeather, DailyWeather, Cities };
+export { torontoWeather, ottawaWeather, DailyWeather, Cities };
