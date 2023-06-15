@@ -85,17 +85,6 @@ export default function App() {
         <article>
           <div className="grid">
             <div>
-              <label>Choose a city:</label>
-              <select
-                name="city"
-                onChange={(val) => setCity(val.target.value)}
-                value={city}
-              >
-                <option value="ottawa">Ottawa</option>
-                <option value="toronto">Toronto</option>
-              </select>
-            </div>
-            <div>
               <h3>Heating consumption/cost</h3>
               <p>
                 <table>
@@ -160,6 +149,15 @@ export default function App() {
             <div>
               <h3>Heating Design Load</h3>
               <p>
+                <label>Choose a city:</label>
+                <select
+                  name="city"
+                  onChange={(val) => setCity(val.target.value)}
+                  value={city}
+                >
+                  <option value="ottawa">Ottawa</option>
+                  <option value="toronto">Toronto</option>
+                </select>
                 <table>
                   <tr>
                     <td>Heating Design Load (BTUs)</td>
