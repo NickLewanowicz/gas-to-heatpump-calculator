@@ -13,6 +13,7 @@ export default function App() {
   const [cop, setCop] = useState([3.5, 3, 2, 1.8, 1.2, 1]);
   const [cap, setCap] = useState([35000, 35000, 24000, 28000, 16000, 0]);
   const [gasUsage, setGasUsage] = useState(1000);
+  const [city, setCity] = useState<'ottawa' | 'toronto'>('ottawa');
   const [furnaceEfficiency, setFurnaceEfficiency] = useState(0.96);
   const [costGas, setCostGas] = useState(0.45);
   const [costKwh, setCostkwh] = useState(0.1);
@@ -22,6 +23,7 @@ export default function App() {
   const heatingDegrees = weather.reduce((acc, day, i) => {
     return acc + (indoor - (day.tempmax + day.tempmin) / 2);
   }, 0);
+
   const doGasCost = (num: number) => {
     if (typeof num !== 'number') {
       setCostGas(0);
@@ -79,6 +81,17 @@ export default function App() {
       <div>
         <article>
           <div className="grid">
+            <div>
+              <label>Choose a city:</label>
+              <select
+                name="city"
+                onChange={(val) => setCity(val.target.value)}
+                value={city}
+              >
+                <option value="ottawa">Ottawa</option>
+                <option value="toronto">Toronto</option>
+              </select>
+            </div>
             <div>
               <h3>Heating consumption/cost</h3>
               <p>
