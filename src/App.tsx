@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { DailyWeather, ottawaWeather, torontoWeather } from './data';
+import { DailyWeather, ottawaWeather, torontoWeather, Cities } from './data';
 
 export default function App() {
   const cityDataMap = {
@@ -15,7 +15,7 @@ export default function App() {
   const [cop, setCop] = useState([3.5, 3, 2, 1.8, 1.2, 1]);
   const [cap, setCap] = useState([35000, 35000, 24000, 28000, 16000, 0]);
   const [gasUsage, setGasUsage] = useState(1000);
-  const [city, setCity] = useState<'ottawa' | 'toronto'>('ottawa');
+  const [city, setCity] = useState<Cities>('ottawa');
   const [furnaceEfficiency, setFurnaceEfficiency] = useState(0.96);
   const [costGas, setCostGas] = useState(0.45);
   const [costKwh, setCostkwh] = useState(0.1);
@@ -152,7 +152,7 @@ export default function App() {
                 <label>Choose a city:</label>
                 <select
                   name="city"
-                  onChange={(val) => setCity(val.target.value)}
+                  onChange={(val) => setCity(val.currentTarget.value as Cities)}
                   value={city}
                 >
                   <option value="ottawa">Ottawa</option>
