@@ -10,10 +10,12 @@ import {
   Title,
   Tooltip,
   Legend,
+  BarElement,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
 ChartJS.register(
+  BarElement,
   CategoryScale,
   LinearScale,
   PointElement,
@@ -57,7 +59,7 @@ export const options = {
 const labels = ['January', 'February', 'March', 'April', 'May', 'June', 'July'];
 
 export const data = {
-  labels,
+  // labels,
   datasets: [
     {
       label: 'Dataset 1',
@@ -81,7 +83,7 @@ export interface Props {
     labels: string[];
     datasets: {
       label: string;
-      data: number[];
+      data: any;
       borderColor: string;
       backgroundColor: string;
       yAxisID: string;

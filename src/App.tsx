@@ -60,6 +60,8 @@ export default function App() {
     rows = getRows(thresholds, weather);
   }, [cop]);
 
+  console.log(rows, cap);
+
   return (
     <div className="container">
       {renderNav()}
@@ -341,21 +343,23 @@ export default function App() {
     </div>
   );
 
-  function getCapacityData(rowsForward: ReturnType<typeof getRows>) {
-    const rows = rowsForward.reverse();
+  function getCapacityData(rows: ReturnType<typeof getRows>) {
     return {
       labels: rows.map((row) => String(row.max)),
+      // labels: [22, 0, -30],
       datasets: [
         {
           label: 'Capacity',
-          data: cap.reverse(),
+          data: cap,
+          // data: rows.map(({ max }, i) => ({ x: max, y: cap[i] })),
           borderColor: 'rgb(255, 99, 132)',
           backgroundColor: 'rgba(255, 99, 132, 0.5)',
           yAxisID: 'y',
         },
         {
           label: 'COP',
-          data: cop.reverse(),
+          data: cop,
+          // data: rows.map(({ max }, i) => ({ x: max, y: cop[i] })),
           borderColor: 'rgb(53, 162, 235)',
           backgroundColor: 'rgba(53, 162, 235, 0.5)',
           yAxisID: 'y1',
@@ -363,10 +367,25 @@ export default function App() {
         {
           label: 'Design Load',
           fill: true,
-          data: rows.map(({ max }) => getDesignLoadAtTemp(max)),
+          data: rows.map(({ max }) => ({
+            x: max,
+            y: getDesignLoadAtTemp(max),
+          })),
           borderColor: 'rgb(253, 262, 35)',
           backgroundColor: 'rgba(253, 262, 35, 0.1)',
           yAxisID: 'y',
+        },
+        {
+          label: 'bar',
+          type: 'bar',
+          fill: true,
+          data: rows.map(({ percentDays }) => ({
+            x: percentDays,
+            y: percentDays,
+          })),
+          borderColor: 'rgb(203, 202, 35)',
+          backgroundColor: 'rgba(203, 202, 35, 0.1)',
+          yAxisID: 'y2',
         },
       ],
     };
