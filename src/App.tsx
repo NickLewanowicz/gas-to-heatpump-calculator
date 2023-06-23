@@ -375,18 +375,18 @@ export default function App() {
           backgroundColor: 'rgba(253, 262, 35, 0.1)',
           yAxisID: 'y',
         },
-        {
-          label: 'bar',
-          type: 'bar',
-          fill: true,
-          data: rows.map(({ percentDays }) => ({
-            x: percentDays,
-            y: percentDays,
-          })),
-          borderColor: 'rgb(203, 202, 35)',
-          backgroundColor: 'rgba(203, 202, 35, 0.1)',
-          yAxisID: 'y2',
-        },
+        // {
+        //   label: 'bar',
+        //   type: 'bar',
+        //   fill: true,
+        //   data: rows.map(({ percentDays }) => ({
+        //     x: percentDays,
+        //     y: percentDays,
+        //   })),
+        //   borderColor: 'rgb(203, 202, 35)',
+        //   backgroundColor: 'rgba(203, 202, 35, 0.1)',
+        //   yAxisID: 'y2',
+        // },
       ],
     };
   }
