@@ -10,12 +10,10 @@ import {
   Title,
   Tooltip,
   Legend,
-  BarElement,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
 ChartJS.register(
-  BarElement,
   CategoryScale,
   LinearScale,
   PointElement,
