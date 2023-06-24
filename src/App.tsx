@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 
-import { DailyWeather, ottawaWeather, torontoWeather, Cities } from './data';
+import {
+  DailyWeather,
+  ottawaWeather,
+  torontoWeather,
+  Cities,
+} from './data/weather';
 
 import { CapacityChart } from './components/CapacityChart';
 
