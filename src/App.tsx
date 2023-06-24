@@ -8,6 +8,7 @@ import {
 } from './data/weather';
 
 import { CapacityChart } from './components/CapacityChart';
+import { useHeatpumpData } from './data/heatpumps';
 
 export interface Heatpump {
   name: string;
@@ -37,6 +38,8 @@ export default function App() {
       cop: [3.5, 3, 2, 1.8, 1.2, 1],
     },
   ]);
+
+  const { pdfDocument } = useHeatpumpData();
 
   const thresholds = [indoor, 8.33, -8.33, -15, -30];
   const weather = cityDataMap[city].slice();
