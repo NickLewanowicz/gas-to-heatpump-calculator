@@ -24,15 +24,11 @@ export default function App() {
   const [indoor, setIndoor] = useState(22);
   const [designTemp, setDesignTemp] = useState(-30);
   const [designBtu, setDesignBtu] = useState(48000);
-  // const [cop, setCop] = useState([3.5, 3, 2, 1.8, 1.2, 1]);
-  // const [cap, setCap] = useState([35000, 35000, 24000, 28000, 16000, 0]);
   const [gasUsage, setGasUsage] = useState(1000);
   const [city, setCity] = useState<Cities>('ottawa');
   const [furnaceEfficiency, setFurnaceEfficiency] = useState(0.96);
   const [costGas, setCostGas] = useState(0.45);
   const [costKwh, setCostkwh] = useState(0.1);
-  const thresholds = [indoor, 8.33, -8.33, -15, -30];
-  const weather = cityDataMap[city].slice();
   const [selected, setSelected] = useState(0);
   const [heatpumps, setHeatpumps] = useState<Heatpump[]>([
     {
@@ -41,6 +37,9 @@ export default function App() {
       cop: [3.5, 3, 2, 1.8, 1.2, 1],
     },
   ]);
+
+  const thresholds = [indoor, 8.33, -8.33, -15, -30];
+  const weather = cityDataMap[city].slice();
 
   const newHeatpump = () => ({
     name: `Heatpump #${heatpumps.length + 1}`,
