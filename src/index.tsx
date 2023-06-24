@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 
 import App from './App';
 
@@ -15,6 +17,11 @@ root.render(
     />
 
     {/* <link rel="stylesheet" href="https://unpkg.com/mvp.css@1.12/mvp.css" /> */}
-    <App />
+    <Router>
+      <Routes>
+        <Route path="*" component={App} />
+        {/* Define more routes here */}
+      </Routes>
+    </Router>
   </StrictMode>
 );

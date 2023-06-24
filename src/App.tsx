@@ -8,6 +8,7 @@ import {
 } from './data/weather';
 
 import { CapacityChart } from './components/CapacityChart';
+import { useSearchParams } from 'react-router-dom';
 
 export interface Heatpump {
   name: string;
@@ -21,6 +22,7 @@ export default function App() {
   };
 
   const cmGasToKwh = 10.55;
+  const [searchParams, setSearchParams] = useSearchParams();
   const [indoor, setIndoor] = useState(22);
   const [designTemp, setDesignTemp] = useState(-30);
   const [designBtu, setDesignBtu] = useState(48000);
