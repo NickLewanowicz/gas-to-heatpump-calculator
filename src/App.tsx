@@ -730,7 +730,16 @@ export default function App() {
                 style={{ flex: 1 }}
                 role="button"
                 className="outline"
-                onClick={() => setHeatpumps(heatpumps.splice(selected, 1))}
+                onClick={() => {
+                  selected >= heatpumps.length - 1 && setSelected(0);
+                  setHeatpumps((prevState) => {
+                    const updatedArray = prevState.filter(
+                      (_, i) => i !== selected
+                    );
+
+                    return updatedArray;
+                  });
+                }}
               >
                 - remove heatpump
               </span>
@@ -738,46 +747,6 @@ export default function App() {
           </div>
         </div>
         {heatpumpTable(heatpumps[selected])}
-        {/* <figure>
-          <table>
-            <thead>
-              <td>Temp °C / BTUs</td>
-              <td>COP at temp</td>
-              <td>BTU at temp</td>
-            </thead>
-            {rows.slice().map((val, i) => {
-              return (
-                <tr>
-                  <td>
-                    {`${val.max} °C`} <br />
-                    {Math.round(
-                      (designBtu / (indoor - -30)) * (indoor - val.max)
-                    )}{' '}
-                    BTUs
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      value={cop[i]}
-                      onChange={(v) => {
-                        doCopChange(Number(v.currentTarget.value), i);
-                      }}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      value={cap[i]}
-                      onChange={(v) => {
-                        doCapChange(Number(v.currentTarget.value), i);
-                      }}
-                    />
-                  </td>
-                </tr>
-              );
-            })}
-          </table>
-        </figure> */}
       </div>
     );
   }
