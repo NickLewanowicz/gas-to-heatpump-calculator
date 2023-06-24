@@ -1,20 +1,19 @@
 // import { usePdf } from '@mikecousins/react-pdf';
 import { useRef, useState } from 'react';
+import { getDocument } from 'pdfjs-dist';
+import examplePDF2 from './206414273.pdf';
+import examplePDF from '/211259279.pdf';
 
 export interface HeatpumpData {
   name: string;
   data: any;
 }
 
-// export function useHeatpumpData() {
-//   const [page, setPage] = useState(1);
-//   const canvasRef = useRef(null);
-
-//   const { pdfDocument, pdfPage } = usePdf({
-//     canvasRef,
-//     file: '/206414273.pdf',
-//     page,
-//   });
-
-//   return { pdfDocument, pdfPage };
-// }
+export function useHeatpumpData() {
+  const handleFileChange = async (event) => {
+    const response = await fetch(examplePDF);
+    const arrayBuffer = await response.arrayBuffer();
+    const pdf = await getDocument(arrayBuffer).promise;
+  };
+  return {};
+}
