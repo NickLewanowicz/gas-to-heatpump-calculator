@@ -10,10 +10,11 @@ export interface HeatpumpData {
 }
 
 export function useHeatpumpData() {
-  const handleFileChange = async (event) => {
+  const handleFileChange = async () => {
     const response = await fetch(examplePDF);
     const arrayBuffer = await response.arrayBuffer();
     const pdf = await getDocument(arrayBuffer).promise;
+    return pdf;
   };
-  return {};
+  return handleFileChange();
 }
