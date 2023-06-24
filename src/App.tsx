@@ -706,16 +706,23 @@ export default function App() {
       <div>
         <h3>Heat Pump Efficiency</h3>
         <div>
-          {heatpumps.map((heatpump, i) => {
-            return (
-              <button
-                onClick={() => setSelected(i)}
-                className={`secondary ${i === selected ? '' : 'outline'}`}
-              >
-                {heatpump.name}
-              </button>
-            );
-          })}
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            {heatpumps.map((heatpump, i) => {
+              return (
+                <button
+                  style={{
+                    display: 'flex',
+                    flex: 1,
+                    gap: '1rem',
+                  }}
+                  onClick={() => setSelected(i)}
+                  className={`secondary ${i === selected ? '' : 'outline'}`}
+                >
+                  {heatpump.name}
+                </button>
+              );
+            })}
+          </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <span
               style={{ flex: 1 }}
