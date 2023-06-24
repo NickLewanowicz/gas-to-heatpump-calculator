@@ -19,7 +19,7 @@ root.render(
     {/* <link rel="stylesheet" href="https://unpkg.com/mvp.css@1.12/mvp.css" /> */}
     <Router>
       <Routes>
-        <Route path="*" component={App} />
+        <Route exact path="/" Component={App}></Route>
         {/* Define more routes here */}
       </Routes>
     </Router>
