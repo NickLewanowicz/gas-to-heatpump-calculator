@@ -328,31 +328,6 @@ export default function App() {
                   </tr>
                 );
               })}
-              {/* <tr>
-                Duel Fuel
-                <td>
-                  {rows.reduce((acc, row) => acc + row.heatPumpDuelFuel, 0)}
-                  kWh
-                  <br />
-                  {Math.round(
-                    rows.reduce((acc, row) => acc + row.fossilFuelKwh, 0) /
-                      cmGasToKwh
-                  )}{' '}
-                  m3
-                </td>
-                <td>
-                  $
-                  {Math.round(
-                    rows.reduce(
-                      (acc, { heatPumpDuelFuel, fossilFuelKwh }) =>
-                        acc +
-                        heatPumpDuelFuel * costKwh +
-                        (fossilFuelKwh / cmGasToKwh) * costGas,
-                      0
-                    )
-                  )}
-                </td>
-              </tr> */}
             </table>
           </figure>
           <p>
