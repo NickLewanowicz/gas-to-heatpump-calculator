@@ -23,6 +23,7 @@ export default function App() {
 
   const cmGasToKwh = 10.55;
   const [searchParams, setSearchParams] = useSearchParams();
+  const [init, setInit] = useState(false);
   const [indoor, setIndoor] = useState(22);
   const [designTemp, setDesignTemp] = useState(-30);
   const [designBtu, setDesignBtu] = useState(48000);
@@ -54,6 +55,20 @@ export default function App() {
     return acc + (indoor - (day.tempmax + day.tempmin) / 2);
   }, 0);
 
+  useEffect(() => {
+    const heatpumps = JSON.parse(decodeURI(searchParams.get('heatpumps')));
+    setSearchParams(searchParams);
+    setHeatpumps(heatpumps);
+    setInit(true);
+  }, []);
+
+  useEffect(() => {
+    if (init) {
+      searchParams.set('heatpumps', encodeURI(JSON.stringify(heatpumps)));
+      setSearchParams(searchParams);
+    }
+  }, [heatpumps]);
+
   const doGasCost = (num: number) => {
     if (typeof num !== 'number') {
       setCostGas(0);
@@ -73,8 +88,6 @@ export default function App() {
   useEffect(() => {
     rows = getRows(thresholds, weather);
   }, [heatpumps]);
-
-  console.log(heatpumps);
 
   return (
     <div className="container">
