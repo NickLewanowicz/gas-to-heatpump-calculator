@@ -58,7 +58,9 @@ export default function App() {
   useEffect(() => {
     const heatpumps = JSON.parse(decodeURI(searchParams.get('heatpumps')));
     setSearchParams(searchParams);
-    setHeatpumps(heatpumps);
+    if (heatpumps && heatpumps.length) {
+      setHeatpumps(heatpumps);
+    }
     setInit(true);
   }, []);
 
