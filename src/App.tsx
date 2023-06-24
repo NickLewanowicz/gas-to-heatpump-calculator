@@ -753,14 +753,39 @@ export default function App() {
             )}
           </div>
         </div>
-        {heatpumpTable(heatpumps[selected])}
+        {heatpumps.map((heatpump, i) => {
+          return i == selected ? heatpumpTable(heatpump, i) : null;
+        })}
       </div>
     );
   }
 
-  function heatpumpTable(heatpump: Heatpump) {
+  function heatpumpTable(heatpump: Heatpump, i: number) {
     return (
       <figure>
+        <div
+          style={{
+            paddingTop: '1rem',
+            gap: '1rem',
+
+            display: 'flex',
+            alignItems: 'baseline',
+          }}
+        >
+          <p>🏷 </p>
+          <input
+            value={heatpump.name}
+            onChange={(v) => {
+              setHeatpumps((prevState) => {
+                const updated = [...prevState];
+                const current = updated[selected];
+                current.name = v.target.value;
+
+                return updated;
+              });
+            }}
+          />
+        </div>
         <table>
           <thead>
             <td>Temp °C / BTUs</td>
