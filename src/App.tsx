@@ -3,6 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { DailyWeather, ottawaWeather, torontoWeather, Cities } from './data';
 
 import { CapacityChart } from './components/CapacityChart';
+
+export interface Heatpump {
+  name: string;
+  cop: number[];
+  cap: number[];
+}
 export default function App() {
   const cityDataMap = {
     ottawa: ottawaWeather,
@@ -13,8 +19,8 @@ export default function App() {
   const [indoor, setIndoor] = useState(22);
   const [designTemp, setDesignTemp] = useState(-30);
   const [designBtu, setDesignBtu] = useState(48000);
-  const [cop, setCop] = useState([3.5, 3, 2, 1.8, 1.2, 1]);
-  const [cap, setCap] = useState([35000, 35000, 24000, 28000, 16000, 0]);
+  // const [cop, setCop] = useState([3.5, 3, 2, 1.8, 1.2, 1]);
+  // const [cap, setCap] = useState([35000, 35000, 24000, 28000, 16000, 0]);
   const [gasUsage, setGasUsage] = useState(1000);
   const [city, setCity] = useState<Cities>('ottawa');
   const [furnaceEfficiency, setFurnaceEfficiency] = useState(0.96);
@@ -22,6 +28,20 @@ export default function App() {
   const [costKwh, setCostkwh] = useState(0.1);
   const thresholds = [indoor, 8.33, -8.33, -15, -30];
   const weather = cityDataMap[city].slice();
+  const [selected, setSelected] = useState(0);
+  const [heatpumps, setHeatpumps] = useState<Heatpump[]>([
+    {
+      name: 'Heatpump #1',
+      cap: [35000, 35000, 24000, 28000, 16000, 0],
+      cop: [3.5, 3, 2, 1.8, 1.2, 1],
+    },
+  ]);
+
+  const newHeatpump = () => ({
+    name: `Heatpump #${heatpumps.length + 1}`,
+    cap: [35000, 35000, 24000, 28000, 16000, 0],
+    cop: [3.5, 3, 2, 1.8, 1.2, 1],
+  });
 
   const kwhEquivalent = gasUsage * cmGasToKwh * furnaceEfficiency;
   const heatingDegrees = weather.reduce((acc, day, i) => {
@@ -43,24 +63,12 @@ export default function App() {
     }
   };
 
-  const doCopChange = (num: number, i: number) => {
-    const newCop = cop.slice();
-    newCop[i] = num;
-    setCop(newCop);
-  };
-
-  const doCapChange = (num: number, i: number) => {
-    const newCap = cap.slice();
-    newCap[i] = num;
-    setCap(newCap);
-  };
-
   let rows = getRows(thresholds, weather);
   useEffect(() => {
     rows = getRows(thresholds, weather);
-  }, [cop]);
+  }, [heatpumps]);
 
-  console.log(rows, cap);
+  console.log(heatpumps);
 
   return (
     <div className="container">
@@ -208,9 +216,21 @@ export default function App() {
             </div>
           </div>
           {renderHeatPumpInputTable()}
+          <details>
+            <summary>Consumption by temperature range</summary>
+            <p>{consumptionDayBreakdown()}</p>
+          </details>
+          <details>
+            <summary>Performance by temperature range</summary>
+            <CapacityChart
+              data={getCapacityData(
+                getRows(thresholds, weather, heatpumps[selected])
+              )}
+            />
+          </details>
         </article>
         <article>
-          <h3>Results Breakdown</h3>
+          <h3>Results Comparison</h3>
           <figure>
             <table role="grid">
               <thead>
@@ -229,27 +249,36 @@ export default function App() {
                 <td>{kwhEquivalent} kWh</td>
                 <td> ${Math.round(kwhEquivalent * costKwh)}</td>
               </tr>
-              <tr>
-                Heat Pump + electric backup
-                <td>
-                  {rows.reduce(
-                    (acc, row) =>
-                      acc + row.heatPumpKwhConsumed + row.resistiveKwhConsumed,
-                    0
-                  )}
-                  kWh
-                </td>
-                <td>
-                  $
-                  {Math.round(
-                    rows.reduce(
-                      (acc, { heatPumpKwhConsumed, resistiveKwhConsumed }) =>
-                        acc + heatPumpKwhConsumed + resistiveKwhConsumed,
-                      0
-                    ) * costKwh
-                  )}
-                </td>
-              </tr>
+              {heatpumps.map((heatpump) => {
+                const rows = getRows(thresholds, weather, heatpump);
+                return (
+                  <tr>
+                    {heatpump.name} + electric backup
+                    <td>
+                      {rows.reduce(
+                        (acc, row) =>
+                          acc +
+                          row.heatPumpKwhConsumed +
+                          row.resistiveKwhConsumed,
+                        0
+                      )}
+                      kWh
+                    </td>
+                    <td>
+                      $
+                      {Math.round(
+                        rows.reduce(
+                          (
+                            acc,
+                            { heatPumpKwhConsumed, resistiveKwhConsumed }
+                          ) => acc + heatPumpKwhConsumed + resistiveKwhConsumed,
+                          0
+                        ) * costKwh
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
               <tr>
                 Duel Fuel
                 <td>
@@ -289,59 +318,62 @@ export default function App() {
             </em>{' '}
             {rows.reduce((acc, row) => acc + row.resistiveKwhConsumed, 0)}kwh
           </p>
-          <CapacityChart data={getCapacityData(rows)} />
-          <figure>
-            <table role="grid">
-              <thead>
-                <td>Threshold °C</td>
-                <td>% of days / heating degree</td>
-                <td>Energy Consumption</td>
-                <td>Heat Pump Performance</td>
-              </thead>
-              {rows.map((val, i) => {
-                const daysBelowNum = val.num;
-                const percent = val.percentDays.toLocaleString(undefined, {
-                  style: 'percent',
-                  minimumFractionDigits: 2,
-                });
-                const heatingDeltaPercent = val.heatingPercent.toLocaleString(
-                  undefined,
-                  {
-                    style: 'percent',
-                    minimumFractionDigits: 2,
-                  }
-                );
-
-                // const resitiveEnergy = Math.round(
-                //   (heatingDelta / heatingDegrees) * kwhEquivalent
-                // );
-                // const gas = Math.round(gasUsage * (heatingDelta / heatingDegrees));
-                const heatPumpEnergy = val.heatPumpEnergy;
-
-                return (
-                  <tr>
-                    <td>{`${val.label} °C`}</td>
-                    <td>
-                      {percent} / {heatingDeltaPercent}
-                    </td>
-                    <td>
-                      HP: {val.heatPumpKwhConsumed}kWh <br /> AUX:
-                      {val.resistiveKwhConsumed}kWh
-                    </td>
-                    <td>
-                      {cop[i]}COP
-                      <br />
-                      {cap[i]} BTUs
-                    </td>
-                  </tr>
-                );
-              })}
-            </table>
-          </figure>
         </article>
       </div>
     </div>
   );
+
+  function consumptionDayBreakdown() {
+    return (
+      <figure>
+        <table role="grid">
+          <thead>
+            <td>Threshold °C</td>
+            <td>% of days / heating degree</td>
+            <td>Energy Consumption</td>
+            <td>Heat Pump Performance</td>
+          </thead>
+          {rows.map((val, i) => {
+            const percent = val.percentDays.toLocaleString(undefined, {
+              style: 'percent',
+              minimumFractionDigits: 2,
+            });
+            const heatingDeltaPercent = val.heatingPercent.toLocaleString(
+              undefined,
+              {
+                style: 'percent',
+                minimumFractionDigits: 2,
+              }
+            );
+
+            // const resitiveEnergy = Math.round(
+            //   (heatingDelta / heatingDegrees) * kwhEquivalent
+            // );
+            // const gas = Math.round(gasUsage * (heatingDelta / heatingDegrees));
+            const heatPumpEnergy = val.heatPumpEnergy;
+
+            return (
+              <tr>
+                <td>{`${val.label} °C`}</td>
+                <td>
+                  {percent} / {heatingDeltaPercent}
+                </td>
+                <td>
+                  HP: {val.heatPumpKwhConsumed}kWh <br /> AUX:
+                  {val.resistiveKwhConsumed}kWh
+                </td>
+                <td>
+                  {heatpumps[selected].cop[i]}COP
+                  <br />
+                  {heatpumps[selected].cap[i]} BTUs
+                </td>
+              </tr>
+            );
+          })}
+        </table>
+      </figure>
+    );
+  }
 
   function getCapacityData(rows: ReturnType<typeof getRows>) {
     return {
@@ -350,7 +382,7 @@ export default function App() {
       datasets: [
         {
           label: 'Capacity',
-          data: cap,
+          data: heatpumps[selected].cap,
           // data: rows.map(({ max }, i) => ({ x: max, y: cap[i] })),
           borderColor: 'rgb(255, 99, 132)',
           backgroundColor: 'rgba(255, 99, 132, 0.5)',
@@ -358,7 +390,7 @@ export default function App() {
         },
         {
           label: 'COP',
-          data: cop,
+          data: heatpumps[selected].cop,
           // data: rows.map(({ max }, i) => ({ x: max, y: cop[i] })),
           borderColor: 'rgb(53, 162, 235)',
           backgroundColor: 'rgba(53, 162, 235, 0.5)',
@@ -391,7 +423,14 @@ export default function App() {
     };
   }
 
-  function getRows(thresholds: number[], weather: DailyWeather[]) {
+  function getRows(
+    thresholds: number[],
+    weather: DailyWeather[],
+    input?: Heatpump
+  ) {
+    const heatpump = input || heatpumps[selected];
+    const cap = heatpump.cap;
+    const cop = heatpump.cop;
     function getEfficiencyAtTemp(temp: number) {
       const arr: { temp: number; cap: number; cop: number }[] = thresholds.map(
         (val, i) => ({
@@ -470,7 +509,8 @@ export default function App() {
       // );
       const gas = Math.round(gasUsage * (heatingDelta / heatingDegrees));
       const heatPumpEnergy = Math.round(
-        ((heatingDelta / heatingDegrees) * kwhEquivalent) / cop[i]
+        ((heatingDelta / heatingDegrees) * kwhEquivalent) /
+          heatpumps[selected].cop[i]
       );
 
       const costSavings = Math.round(gas * costGas - heatPumpEnergy * costKwh);
@@ -635,7 +675,40 @@ export default function App() {
     return (
       <div>
         <h3>Heat Pump Efficiency</h3>
-        <figure>
+        <div>
+          {heatpumps.map((heatpump, i) => {
+            return (
+              <button
+                onClick={() => setSelected(i)}
+                className={`secondary ${i === selected ? '' : 'outline'}`}
+              >
+                {heatpump.name}
+              </button>
+            );
+          })}
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <span
+              style={{ flex: 1 }}
+              role="button"
+              className="outline"
+              onClick={() => setHeatpumps([...heatpumps, newHeatpump()])}
+            >
+              + add heatpump
+            </span>
+            {heatpumps.length > 1 && (
+              <span
+                style={{ flex: 1 }}
+                role="button"
+                className="outline"
+                onClick={() => setHeatpumps(heatpumps.splice(selected, 1))}
+              >
+                - remove heatpump
+              </span>
+            )}
+          </div>
+        </div>
+        {heatpumpTable(heatpumps[selected])}
+        {/* <figure>
           <table>
             <thead>
               <td>Temp °C / BTUs</td>
@@ -674,8 +747,65 @@ export default function App() {
               );
             })}
           </table>
-        </figure>
+        </figure> */}
       </div>
+    );
+  }
+
+  function heatpumpTable(heatpump: Heatpump) {
+    return (
+      <figure>
+        <table>
+          <thead>
+            <td>Temp °C / BTUs</td>
+            <td>COP at temp</td>
+            <td>BTU at temp</td>
+          </thead>
+          {rows.slice().map((val, i) => {
+            return (
+              <tr>
+                <td>
+                  {`${val.max} °C`} <br />
+                  {Math.round(
+                    (designBtu / (indoor - -30)) * (indoor - val.max)
+                  )}{' '}
+                  BTUs
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    value={heatpumps[selected].cop[i]}
+                    onChange={(v) => {
+                      setHeatpumps((prevState) => {
+                        const updated = [...prevState];
+                        const current = updated[selected];
+                        current.cop[i] = Number(v.target.value);
+
+                        return updated;
+                      });
+                    }}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    value={heatpumps[selected].cap[i]}
+                    onChange={(v) => {
+                      setHeatpumps((prevState) => {
+                        const updated = [...prevState];
+                        const current = updated[selected];
+                        current.cap[i] = Number(v.target.value);
+
+                        return updated;
+                      });
+                    }}
+                  />
+                </td>
+              </tr>
+            );
+          })}
+        </table>
+      </figure>
     );
   }
 }
