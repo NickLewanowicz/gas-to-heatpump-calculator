@@ -279,7 +279,37 @@ export default function App() {
                   </tr>
                 );
               })}
-              <tr>
+              {heatpumps.map((heatpump) => {
+                const rows = getRows(thresholds, weather, heatpump);
+                return (
+                  <tr>
+                    {heatpump.name} + gas backup
+                    <td>
+                      {rows.reduce((acc, row) => acc + row.heatPumpDuelFuel, 0)}
+                      kWh
+                      <br />
+                      {Math.round(
+                        rows.reduce((acc, row) => acc + row.fossilFuelKwh, 0) /
+                          cmGasToKwh
+                      )}{' '}
+                      m3
+                    </td>
+                    <td>
+                      $
+                      {Math.round(
+                        rows.reduce(
+                          (acc, { heatPumpDuelFuel, fossilFuelKwh }) =>
+                            acc +
+                            heatPumpDuelFuel * costKwh +
+                            (fossilFuelKwh / cmGasToKwh) * costGas,
+                          0
+                        )
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {/* <tr>
                 Duel Fuel
                 <td>
                   {rows.reduce((acc, row) => acc + row.heatPumpDuelFuel, 0)}
@@ -303,7 +333,7 @@ export default function App() {
                     )
                   )}
                 </td>
-              </tr>
+              </tr> */}
             </table>
           </figure>
           <p>
