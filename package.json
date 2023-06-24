@@ -4,6 +4,7 @@
   "homepage": "https://nicklewanowicz.github.io/gas-to-heatpump-calculator",
   "private": true,
   "dependencies": {
+    "@types/pako": "^2.0.0",
     "@types/react": "^18.2.14",
     "@types/react-dom": "^18.2.6",
     "@types/react-router-dom": "^5.3.3",

@@ -7,6 +7,8 @@ import {
   Cities,
 } from './data/weather';
 
+import { deflate, inflate } from 'pako';
+
 import { CapacityChart } from './components/CapacityChart';
 import { useSearchParams } from 'react-router-dom';
 
@@ -56,6 +58,15 @@ export default function App() {
   }, 0);
 
   useEffect(() => {
+    const compressedValueString = decodeURIComponent(
+      searchParams.get('heatpumps')
+    );
+    const compressedValue = new Uint8Array(
+      [...compressedValueString].map((c) => c.charCodeAt(0))
+    );
+    // const decompressedValue = inflate(compressedValue);
+
+    console.log(compressedValue);
     const heatpumps = JSON.parse(decodeURI(searchParams.get('heatpumps')));
     setSearchParams(searchParams);
     if (heatpumps && heatpumps.length) {
