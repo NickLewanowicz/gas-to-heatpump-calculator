@@ -1,4 +1,4 @@
-import ottawaWeather from './ottawa';
+import { hourlyOttawa } from './ottawa';
 import torontoWeather from './toronto';
 
 interface DailyWeather {
@@ -37,6 +37,11 @@ interface DailyWeather {
   stations: string;
 }
 
+export interface HourlyWeather {
+  datetime: Date;
+  temp: number;
+}
+
 type Cities = 'ottawa' | 'toronto';
 
-export { torontoWeather, ottawaWeather, DailyWeather, Cities };
+export { torontoWeather, hourlyOttawa, DailyWeather, Cities };

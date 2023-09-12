@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 
 import {
-  DailyWeather,
-  ottawaWeather,
+  hourlyOttawa,
   torontoWeather,
   Cities,
+  HourlyWeather,
 } from './data/weather';
-
-import { deflate, inflate } from 'pako';
 
 import { CapacityChart } from './components/CapacityChart';
 import { useSearchParams } from 'react-router-dom';
@@ -18,6 +16,7 @@ export interface Heatpump {
   cap: number[];
 }
 export default function App() {
+  const ottawaWeather = hourlyOttawa;
   const cityDataMap = {
     ottawa: ottawaWeather,
     toronto: torontoWeather,
@@ -53,20 +52,11 @@ export default function App() {
   });
 
   const kwhEquivalent = gasUsage * cmGasToKwh * furnaceEfficiency;
-  const heatingDegrees = weather.reduce((acc, day, i) => {
-    return acc + (indoor - (day.tempmax + day.tempmin) / 2);
+  const heatingDegrees = weather.reduce((acc, hour, i) => {
+    return acc + (indoor - hour.temp);
   }, 0);
 
   useEffect(() => {
-    const compressedValueString = decodeURIComponent(
-      searchParams.get('heatpumps')
-    );
-    const compressedValue = new Uint8Array(
-      [...compressedValueString].map((c) => c.charCodeAt(0))
-    );
-    // const decompressedValue = inflate(compressedValue);
-
-    console.log(compressedValue);
     const heatpumps = JSON.parse(decodeURI(searchParams.get('heatpumps')));
     setSearchParams(searchParams);
     if (heatpumps && heatpumps.length) {
@@ -366,7 +356,7 @@ export default function App() {
         <table role="grid">
           <thead>
             <td>Threshold °C</td>
-            <td>% of days / heating degree</td>
+            <td>% of hours / heating degree</td>
             <td>Energy Consumption</td>
             <td>Heat Pump Performance</td>
           </thead>
@@ -462,7 +452,7 @@ export default function App() {
 
   function getRows(
     thresholds: number[],
-    weather: DailyWeather[],
+    weather: HourlyWeather[],
     input?: Heatpump
   ) {
     const heatpump = input || heatpumps[selected];
@@ -499,12 +489,12 @@ export default function App() {
     return thresholds.map((val, i) => {
       const max = val;
       const min = thresholds[i + 1] || -100;
-      const daysBelow = weather.filter(
-        (day) => day.tempmin <= max && day.tempmin > min
+      const hoursBelow = weather.filter(
+        (hour) => hour.temp <= max && hour.temp > min
       );
 
-      const heatingDelta = daysBelow.reduce((acc, day, j) => {
-        return acc + (indoor - (day.tempmax + day.tempmin) / 2);
+      const heatingDelta = hoursBelow.reduce((acc, hour, j) => {
+        return acc + (indoor - hour.temp);
       }, 0);
 
       const {
@@ -512,21 +502,23 @@ export default function App() {
         heatPumpKwhConsumed,
         heatPumpDuelFuel,
         fossilFuelKwh,
-      } = daysBelow.reduce(
-        (acc, day, j) => {
-          const { cop: dayCop, cap: dayCap } = getEfficiencyAtTemp(day.temp);
+      } = hoursBelow.reduce(
+        (acc, hour, j) => {
+          j == 1 && console.log(hoursBelow);
+
+          const { cop: hourCop, cap: hourCap } = getEfficiencyAtTemp(hour.temp);
           const {
-            resistiveHeat: dayResitiveKwh,
-            heatPump: dayHeatPumpKwh,
-            heatPumpDuelFuel: dayHeatPumpDuelFuel,
-            fossilFuelKwh: dayFossilFuelKwh,
-          } = getEnergySource(day, dayCap, dayCop);
+            resistiveHeat: hourResitiveKwh,
+            heatPump: hourHeatPumpKwh,
+            heatPumpDuelFuel: hourHeatPumpDuelFuel,
+            fossilFuelKwh: hourFossilFuelKwh,
+          } = getEnergySource(hour, hourCap, hourCop);
 
           return {
-            resistiveKwhConsumed: acc.resistiveKwhConsumed + dayResitiveKwh,
-            heatPumpKwhConsumed: acc.heatPumpKwhConsumed + dayHeatPumpKwh,
-            heatPumpDuelFuel: acc.heatPumpDuelFuel + dayHeatPumpDuelFuel,
-            fossilFuelKwh: acc.fossilFuelKwh + dayFossilFuelKwh,
+            resistiveKwhConsumed: acc.resistiveKwhConsumed + hourResitiveKwh,
+            heatPumpKwhConsumed: acc.heatPumpKwhConsumed + hourHeatPumpKwh,
+            heatPumpDuelFuel: acc.heatPumpDuelFuel + hourHeatPumpDuelFuel,
+            fossilFuelKwh: acc.fossilFuelKwh + hourFossilFuelKwh,
           };
         },
         {
@@ -537,8 +529,8 @@ export default function App() {
         }
       );
 
-      const daysBelowNum = daysBelow.length;
-      const percent = Number(daysBelowNum / weather.length);
+      const hoursBelowNum = hoursBelow.length;
+      const percent = Number(hoursBelowNum / weather.length);
       const heatingDeltaPercent = Number(heatingDelta / heatingDegrees);
 
       // const resitiveEnergy = Math.round(
@@ -565,8 +557,8 @@ export default function App() {
         threshold: val,
         max,
         min,
-        days: daysBelow,
-        num: daysBelow.length,
+        days: hoursBelow,
+        num: hoursBelow.length,
         percentDays: percent,
         heatingDegrees: heatingDelta,
         heatingPercent: heatingDeltaPercent,
@@ -586,7 +578,7 @@ export default function App() {
     return heatingDegrees * designBtuPerDegree;
   }
   function getEnergySource(
-    day: DailyWeather,
+    hour: HourlyWeather,
     btusAtTemp: number,
     copAtTemp: number
   ): {
@@ -595,9 +587,9 @@ export default function App() {
     heatPumpDuelFuel: number;
     fossilFuelKwh: number;
   } {
-    const requiredBtus = getDesignLoadAtTemp(day.tempmin);
-    const heatingDegreesToday = indoor - (day.tempmax + day.tempmin) / 2;
-    const proportionOfHeatingDegrees = heatingDegreesToday / heatingDegrees;
+    const requiredBtus = getDesignLoadAtTemp(hour.temp);
+    const heatingDegreesThisHour = indoor - hour.temp;
+    const proportionOfHeatingDegrees = heatingDegreesThisHour / heatingDegrees;
     const amountOfEnergyNeeded = proportionOfHeatingDegrees * kwhEquivalent;
     const proportionHeatPump = Math.min(btusAtTemp / requiredBtus, 1);
     const resistiveHeat = Math.round(
