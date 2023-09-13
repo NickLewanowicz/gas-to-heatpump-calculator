@@ -16,7 +16,8 @@ export interface Heatpump {
   cap: number[];
 }
 export default function App() {
-  const ottawaWeather = hourlyOttawa.slice(5000, 12000);
+  const ottawaWeather = hourlyOttawa.filter((_, index) => index % 1 === 0);
+
   const cityDataMap = {
     ottawa: ottawaWeather,
     toronto: torontoWeather,
@@ -90,6 +91,7 @@ export default function App() {
   let rows = getRows(thresholds, weather);
   useEffect(() => {
     rows = getRows(thresholds, weather);
+    console.log(rows[0].gains);
   }, [heatpumps]);
 
   return (
@@ -253,6 +255,11 @@ export default function App() {
         </article>
         <article>
           <h3>Results Comparison</h3>
+          {rows.map((row) =>
+            row.days.reduce((hour) => {
+              const foo = hour;
+            })
+          )}
           <figure>
             <table role="grid">
               <thead>
@@ -373,10 +380,6 @@ export default function App() {
               }
             );
 
-            // const resitiveEnergy = Math.round(
-            //   (heatingDelta / heatingDegrees) * kwhEquivalent
-            // );
-            // const gas = Math.round(gasUsage * (heatingDelta / heatingDegrees));
             const heatPumpEnergy = val.heatPumpEnergy;
 
             return (
@@ -458,43 +461,16 @@ export default function App() {
     const heatpump = input || heatpumps[selected];
     const cap = heatpump.cap;
     const cop = heatpump.cop;
-    function getEfficiencyAtTemp(temp: number) {
-      const arr: { temp: number; cap: number; cop: number }[] = thresholds.map(
-        (val, i) => ({
-          temp: val,
-          cap: cap[i],
-          cop: cop[i],
-        })
-      );
 
-      const minIndex = Math.max(
-        arr.findIndex((val) => val.temp < temp),
-        1
-      );
-
-      const capSlope =
-        (cap[minIndex] - cap[minIndex - 1]) /
-        (thresholds[minIndex] - thresholds[minIndex - 1]);
-      const copSlope =
-        (cop[minIndex] - cop[minIndex - 1]) /
-        (thresholds[minIndex] - thresholds[minIndex - 1]);
-      const capIntercept = cap[minIndex] - capSlope * thresholds[minIndex];
-      const copIntercept = cop[minIndex] - copSlope * thresholds[minIndex];
-
-      return {
-        cap: capSlope * temp + capIntercept,
-        cop: copSlope * temp + copIntercept,
-      };
-    }
     return thresholds.map((val, i) => {
       const max = val;
       const min = thresholds[i + 1] || -100;
-      const hoursBelow = weather.filter(
-        (hour) => hour.temp <= max && hour.temp > min
+      const daysBelow = weather.filter(
+        (day) => day.temp <= max && day.temp > min
       );
 
-      const heatingDelta = hoursBelow.reduce((acc, hour, j) => {
-        return acc + (indoor - hour.temp);
+      const heatingDelta = daysBelow.reduce((acc, day, j) => {
+        return acc + (indoor - day.temp);
       }, 0);
 
       const {
@@ -502,21 +478,25 @@ export default function App() {
         heatPumpKwhConsumed,
         heatPumpDuelFuel,
         fossilFuelKwh,
-      } = hoursBelow.reduce(
-        (acc, hour, j) => {
-          const { cop: hourCop, cap: hourCap } = getEfficiencyAtTemp(hour.temp);
+      } = daysBelow.reduce(
+        (acc, day, j) => {
+          const { cop: dayCop, cap: dayCap } = getEfficiencyAtTemp(
+            day.temp,
+            thresholds,
+            heatpump
+          );
           const {
-            resistiveHeat: hourResitiveKwh,
-            heatPump: hourHeatPumpKwh,
-            heatPumpDuelFuel: hourHeatPumpDuelFuel,
-            fossilFuelKwh: hourFossilFuelKwh,
-          } = getEnergySource(hour, hourCap, hourCop);
+            resistiveHeat: dayResitiveKwh,
+            heatPump: dayHeatPumpKwh,
+            heatPumpDuelFuel: dayHeatPumpDuelFuel,
+            fossilFuelKwh: dayFossilFuelKwh,
+          } = getEnergySource(day, dayCap, dayCop);
 
           return {
-            resistiveKwhConsumed: acc.resistiveKwhConsumed + hourResitiveKwh,
-            heatPumpKwhConsumed: acc.heatPumpKwhConsumed + hourHeatPumpKwh,
-            heatPumpDuelFuel: acc.heatPumpDuelFuel + hourHeatPumpDuelFuel,
-            fossilFuelKwh: acc.fossilFuelKwh + hourFossilFuelKwh,
+            resistiveKwhConsumed: acc.resistiveKwhConsumed + dayResitiveKwh,
+            heatPumpKwhConsumed: acc.heatPumpKwhConsumed + dayHeatPumpKwh,
+            heatPumpDuelFuel: acc.heatPumpDuelFuel + dayHeatPumpDuelFuel,
+            fossilFuelKwh: acc.fossilFuelKwh + dayFossilFuelKwh,
           };
         },
         {
@@ -527,13 +507,10 @@ export default function App() {
         }
       );
 
-      const hoursBelowNum = hoursBelow.length;
-      const percent = Number(hoursBelowNum / weather.length);
+      const daysBelowNum = daysBelow.length;
+      const percent = Number(daysBelowNum / weather.length);
       const heatingDeltaPercent = Number(heatingDelta / heatingDegrees);
 
-      // const resitiveEnergy = Math.round(
-      //   (heatingDelta / heatingDegrees) * kwhEquivalent
-      // );
       const gas = Math.round(gasUsage * (heatingDelta / heatingDegrees));
       const heatPumpEnergy = Math.round(
         ((heatingDelta / heatingDegrees) * kwhEquivalent) /
@@ -555,8 +532,8 @@ export default function App() {
         threshold: val,
         max,
         min,
-        hours: hoursBelow,
-        num: hoursBelow.length,
+        days: daysBelow,
+        num: daysBelow.length,
         percentHours: percent,
         heatingDegrees: heatingDelta,
         heatingPercent: heatingDeltaPercent,
@@ -589,6 +566,7 @@ export default function App() {
     const heatingDegreesThisHour = indoor - hour.temp;
     const proportionOfHeatingDegrees = heatingDegreesThisHour / heatingDegrees;
     const amountOfEnergyNeeded = proportionOfHeatingDegrees * kwhEquivalent;
+    console.log()
     const proportionHeatPump = Math.min(btusAtTemp / requiredBtus, 1);
     const resistiveHeat = Math.round(
       (1 - proportionHeatPump) * amountOfEnergyNeeded
@@ -835,5 +813,40 @@ export default function App() {
         </table>
       </figure>
     );
+  }
+
+  function getEfficiencyAtTemp(
+    temp: number,
+    thresholds: number[],
+    heatpump: Heatpump
+  ) {
+    const cap = heatpump.cap;
+    const cop = heatpump.cop;
+    const arr: { temp: number; cap: number; cop: number }[] = thresholds.map(
+      (val, i) => ({
+        temp: val,
+        cap: cap[i],
+        cop: cop[i],
+      })
+    );
+
+    const minIndex = Math.max(
+      arr.findIndex((val) => val.temp < temp),
+      1
+    );
+
+    const capSlope =
+      (cap[minIndex] - cap[minIndex - 1]) /
+      (thresholds[minIndex] - thresholds[minIndex - 1]);
+    const copSlope =
+      (cop[minIndex] - cop[minIndex - 1]) /
+      (thresholds[minIndex] - thresholds[minIndex - 1]);
+    const capIntercept = cap[minIndex] - capSlope * thresholds[minIndex];
+    const copIntercept = cop[minIndex] - copSlope * thresholds[minIndex];
+
+    return {
+      cap: capSlope * temp + capIntercept,
+      cop: copSlope * temp + copIntercept,
+    };
   }
 }
