@@ -351,7 +351,10 @@ export default function App() {
             <em data-tooltip="Predicted kWh used by backup heat">
               Aux consumption:
             </em>{' '}
-            {rows.reduce((acc, row) => acc + row.resistiveKwhConsumed, 0)}kwh
+            {Math.round(
+              rows.reduce((acc, row) => acc + row.resistiveKwhConsumed, 0)
+            )}
+            kwh
           </p>
           <p>
             <em data-tooltip="Average COP weighted by heating degree days (ie days are weighted proportionally to their heating degrees">
