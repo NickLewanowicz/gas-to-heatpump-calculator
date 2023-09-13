@@ -91,7 +91,6 @@ export default function App() {
   let rows = getRows(thresholds, weather);
   useEffect(() => {
     rows = getRows(thresholds, weather);
-    console.log(rows[0].gains);
   }, [heatpumps]);
 
   return (
@@ -255,11 +254,6 @@ export default function App() {
         </article>
         <article>
           <h3>Results Comparison</h3>
-          {rows.map((row) =>
-            row.days.reduce((hour) => {
-              const foo = hour;
-            })
-          )}
           <figure>
             <table role="grid">
               <thead>
@@ -284,12 +278,14 @@ export default function App() {
                   <tr>
                     {heatpump.name} + electric backup
                     <td>
-                      {rows.reduce(
-                        (acc, row) =>
-                          acc +
-                          row.heatPumpKwhConsumed +
-                          row.resistiveKwhConsumed,
-                        0
+                      {Math.round(
+                        rows.reduce(
+                          (acc, row) =>
+                            acc +
+                            row.heatPumpKwhConsumed +
+                            row.resistiveKwhConsumed,
+                          0
+                        )
                       )}
                       kWh
                     </td>
@@ -314,7 +310,9 @@ export default function App() {
                   <tr>
                     {heatpump.name} + gas backup
                     <td>
-                      {rows.reduce((acc, row) => acc + row.heatPumpDuelFuel, 0)}
+                      {Math.round(
+                        rows.reduce((acc, row) => acc + row.heatPumpDuelFuel, 0)
+                      )}
                       kWh
                       <br />
                       {Math.round(
@@ -344,7 +342,10 @@ export default function App() {
             <em data-tooltip="Predicted kWh used by heatpump">
               Heat pump consumption:
             </em>{' '}
-            {rows.reduce((acc, row) => acc + row.heatPumpKwhConsumed, 0)} kWh
+            {Math.round(
+              rows.reduce((acc, row) => acc + row.heatPumpKwhConsumed, 0)
+            )}{' '}
+            kWh
           </p>
           <p>
             <em data-tooltip="Predicted kWh used by backup heat">
@@ -389,7 +390,7 @@ export default function App() {
                   {percent} / {heatingDeltaPercent}
                 </td>
                 <td>
-                  HP: {val.heatPumpKwhConsumed}kWh <br /> AUX:
+                  HP: {Math.round(val.heatPumpKwhConsumed)}kWh <br /> AUX:
                   {val.resistiveKwhConsumed}kWh
                 </td>
                 <td>
@@ -566,14 +567,12 @@ export default function App() {
     const heatingDegreesThisHour = indoor - hour.temp;
     const proportionOfHeatingDegrees = heatingDegreesThisHour / heatingDegrees;
     const amountOfEnergyNeeded = proportionOfHeatingDegrees * kwhEquivalent;
-    console.log()
     const proportionHeatPump = Math.min(btusAtTemp / requiredBtus, 1);
+
     const resistiveHeat = Math.round(
       (1 - proportionHeatPump) * amountOfEnergyNeeded
     );
-    const heatPump = Math.round(
-      (proportionHeatPump * amountOfEnergyNeeded) / copAtTemp
-    );
+    const heatPump = (proportionHeatPump * amountOfEnergyNeeded) / copAtTemp;
     const heatPumpDuelFuel = proportionHeatPump === 1 ? heatPump : 0;
     const fossilFuelKwh = proportionHeatPump === 1 ? 0 : amountOfEnergyNeeded;
 
