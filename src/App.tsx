@@ -16,7 +16,7 @@ export interface Heatpump {
   cap: number[];
 }
 export default function App() {
-  const ottawaWeather = hourlyOttawa.filter(({ temp }) => temp < 22);
+  const ottawaWeather = hourlyOttawa.slice(5000, 12000);
   const cityDataMap = {
     ottawa: ottawaWeather,
     toronto: torontoWeather,
