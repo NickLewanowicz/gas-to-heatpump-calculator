@@ -16,7 +16,7 @@ export interface Heatpump {
   cap: number[];
 }
 export default function App() {
-  const ottawaWeather = hourlyOttawa.slice(0, 12000);
+  const ottawaWeather = hourlyOttawa.filter(({ temp }) => temp < 22);
   const cityDataMap = {
     ottawa: ottawaWeather,
     toronto: torontoWeather,
@@ -52,11 +52,9 @@ export default function App() {
   });
 
   const kwhEquivalent = gasUsage * cmGasToKwh * furnaceEfficiency;
-  const heatingDegrees = weather
-    .filter(({ temp }) => temp < indoor)
-    .reduce((acc, hour, i) => {
-      return acc + (indoor - hour.temp);
-    }, 0);
+  const heatingDegrees = weather.reduce((acc, hour, i) => {
+    return acc + (indoor - hour.temp);
+  }, 0);
 
   useEffect(() => {
     const heatpumps = JSON.parse(decodeURI(searchParams.get('heatpumps')));
@@ -94,7 +92,6 @@ export default function App() {
     rows = getRows(thresholds, weather);
   }, [heatpumps]);
 
-  console.log(rows[0]);
   return (
     <div className="container">
       {renderNav()}
@@ -276,7 +273,6 @@ export default function App() {
               </tr>
               {heatpumps.map((heatpump) => {
                 const rows = getRows(thresholds, weather, heatpump);
-                console.log(rows);
                 return (
                   <tr>
                     {heatpump.name} + electric backup
@@ -508,8 +504,6 @@ export default function App() {
         fossilFuelKwh,
       } = hoursBelow.reduce(
         (acc, hour, j) => {
-          // j == 1 && console.log(hoursBelow);
-
           const { cop: hourCop, cap: hourCap } = getEfficiencyAtTemp(hour.temp);
           const {
             resistiveHeat: hourResitiveKwh,
@@ -532,7 +526,6 @@ export default function App() {
           fossilFuelKwh: 0,
         }
       );
-      // console.log(resistiveKwhConsumed);
 
       const hoursBelowNum = hoursBelow.length;
       const percent = Number(hoursBelowNum / weather.length);
@@ -562,7 +555,7 @@ export default function App() {
         threshold: val,
         max,
         min,
-        days: hoursBelow,
+        hours: hoursBelow,
         num: hoursBelow.length,
         percentHours: percent,
         heatingDegrees: heatingDelta,
@@ -632,7 +625,7 @@ export default function App() {
     return (
       <div>
         <h2>Weather Data</h2>
-        <p>Total days in data set: </p>
+        <p>Total hours in data set: </p>
         <p>Ottawa: {ottawaWeather.length}</p>
         <p>Toronto: {torontoWeather.length}</p>
         <p>
@@ -691,7 +684,7 @@ export default function App() {
             reflect is ability to have greater then 100% efficency.
           </li>
         </ol>
-        <ul>
+        {/* <ul>
           <h3>Caveats</h3>
           This calculator is just something I threw together in my spare time.
           If its something of interest to people then I wouldnt mind throwing
@@ -700,7 +693,7 @@ export default function App() {
           daily I take the "worst case senario" and assume the heatpump
           opperates at the minimum COP and capacity for the days minimum
           temperature and ignore any variance that might exist.
-        </ul>
+        </ul> */}
       </div>
     );
   }
