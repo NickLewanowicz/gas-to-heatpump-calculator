@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/gas-to-heatpump-calculator/static/js/main.a9a35777.js",
+    "main.js": "/gas-to-heatpump-calculator/static/js/main.f77f76c2.js",
     "index.html": "/gas-to-heatpump-calculator/index.html",
-    "main.a9a35777.js.map": "/gas-to-heatpump-calculator/static/js/main.a9a35777.js.map"
+    "main.f77f76c2.js.map": "/gas-to-heatpump-calculator/static/js/main.f77f76c2.js.map"
   },
   "entrypoints": [
-    "static/js/main.a9a35777.js"
+    "static/js/main.f77f76c2.js"
   ]
 }
