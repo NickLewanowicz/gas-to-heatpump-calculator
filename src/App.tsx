@@ -406,7 +406,7 @@ export default function App() {
                 </td>
                 <td>
                   HP: {Math.round(val.heatPumpKwhConsumed)}kWh <br /> AUX:
-                  {val.resistiveKwhConsumed}kWh
+                  {val.resistiveKwhConsumed.toFixed(2)}kWh
                 </td>
                 <td>
                   {heatpumps[selected].cop[i]}
@@ -534,13 +534,11 @@ export default function App() {
       const percent = Number(daysBelowNum / weather.length);
       const heatingDeltaPercent = Number(heatingDelta / heatingDegrees);
 
-      const gas = Math.round(gasUsage * (heatingDelta / heatingDegrees));
-      const heatPumpEnergy = Math.round(
+      const gas = gasUsage * (heatingDelta / heatingDegrees);
+      const heatPumpEnergy =
         ((heatingDelta / heatingDegrees) * kwhEquivalent) /
-          heatpumps[selected].cop[i]
-      );
-
-      const costSavings = Math.round(gas * costGas - heatPumpEnergy * costKwh);
+        heatpumps[selected].cop[i];
+      const costSavings = gas * costGas - heatPumpEnergy * costKwh;
 
       let label = '';
 
@@ -592,9 +590,7 @@ export default function App() {
     const amountOfEnergyNeeded = proportionOfHeatingDegrees * kwhEquivalent;
     const proportionHeatPump = Math.min(btusAtTemp / requiredBtus, 1);
 
-    const resistiveHeat = Math.round(
-      (1 - proportionHeatPump) * amountOfEnergyNeeded
-    );
+    const resistiveHeat = (1 - proportionHeatPump) * amountOfEnergyNeeded;
     const heatPump = (proportionHeatPump * amountOfEnergyNeeded) / copAtTemp;
     const heatPumpDuelFuel = proportionHeatPump === 1 ? heatPump : 0;
     const fossilFuelKwh = proportionHeatPump === 1 ? 0 : amountOfEnergyNeeded;
