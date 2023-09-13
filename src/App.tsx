@@ -16,7 +16,7 @@ export interface Heatpump {
   cap: number[];
 }
 export default function App() {
-  const ottawaWeather = hourlyOttawa;
+  const ottawaWeather = hourlyOttawa.slice(0, 12000);
   const cityDataMap = {
     ottawa: ottawaWeather,
     toronto: torontoWeather,
@@ -52,9 +52,11 @@ export default function App() {
   });
 
   const kwhEquivalent = gasUsage * cmGasToKwh * furnaceEfficiency;
-  const heatingDegrees = weather.reduce((acc, hour, i) => {
-    return acc + (indoor - hour.temp);
-  }, 0);
+  const heatingDegrees = weather
+    .filter(({ temp }) => temp < indoor)
+    .reduce((acc, hour, i) => {
+      return acc + (indoor - hour.temp);
+    }, 0);
 
   useEffect(() => {
     const heatpumps = JSON.parse(decodeURI(searchParams.get('heatpumps')));
@@ -92,6 +94,7 @@ export default function App() {
     rows = getRows(thresholds, weather);
   }, [heatpumps]);
 
+  console.log(rows[0]);
   return (
     <div className="container">
       {renderNav()}
@@ -240,7 +243,7 @@ export default function App() {
           {renderHeatPumpInputTable()}
           <details>
             <summary>Consumption by temperature range</summary>
-            <p>{consumptionDayBreakdown()}</p>
+            <p>{consumptionHourBreakdown()}</p>
           </details>
           <details>
             <summary>Performance by temperature range</summary>
@@ -273,6 +276,7 @@ export default function App() {
               </tr>
               {heatpumps.map((heatpump) => {
                 const rows = getRows(thresholds, weather, heatpump);
+                console.log(rows);
                 return (
                   <tr>
                     {heatpump.name} + electric backup
@@ -350,7 +354,7 @@ export default function App() {
     </div>
   );
 
-  function consumptionDayBreakdown() {
+  function consumptionHourBreakdown() {
     return (
       <figure>
         <table role="grid">
@@ -361,7 +365,7 @@ export default function App() {
             <td>Heat Pump Performance</td>
           </thead>
           {rows.map((val, i) => {
-            const percent = val.percentDays.toLocaleString(undefined, {
+            const percent = val.percentHours.toLocaleString(undefined, {
               style: 'percent',
               minimumFractionDigits: 2,
             });
@@ -504,7 +508,7 @@ export default function App() {
         fossilFuelKwh,
       } = hoursBelow.reduce(
         (acc, hour, j) => {
-          j == 1 && console.log(hoursBelow);
+          // j == 1 && console.log(hoursBelow);
 
           const { cop: hourCop, cap: hourCap } = getEfficiencyAtTemp(hour.temp);
           const {
@@ -528,6 +532,7 @@ export default function App() {
           fossilFuelKwh: 0,
         }
       );
+      // console.log(resistiveKwhConsumed);
 
       const hoursBelowNum = hoursBelow.length;
       const percent = Number(hoursBelowNum / weather.length);
@@ -559,7 +564,7 @@ export default function App() {
         min,
         days: hoursBelow,
         num: hoursBelow.length,
-        percentDays: percent,
+        percentHours: percent,
         heatingDegrees: heatingDelta,
         heatingPercent: heatingDeltaPercent,
         heatPumpEnergy: heatPumpEnergy,

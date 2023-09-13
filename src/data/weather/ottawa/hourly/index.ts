@@ -10,6 +10,8 @@ const data: HourlyWeather[] = [
   ...data_2021,
   ...data_2022,
 ].map((hour) => {
+  console.log(data_2019.length, data_2020.length, data_2021.length);
+
   return {
     datetime: new Date(hour.time),
     temp: Number(hour.time),
