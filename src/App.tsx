@@ -353,6 +353,21 @@ export default function App() {
             </em>{' '}
             {rows.reduce((acc, row) => acc + row.resistiveKwhConsumed, 0)}kwh
           </p>
+          <p>
+            <em data-tooltip="Average COP weighted by heating degree days (ie days are weighted proportionally to their heating degrees">
+              Average COP:
+            </em>{' '}
+            {rows
+              .reduce(
+                (acc, row) =>
+                  acc +
+                  (row.copAverage / row.days.length) *
+                    (row.heatingDegrees / heatingDegrees),
+                0
+              )
+              .toFixed(2)}{' '}
+            COP
+          </p>
         </article>
       </div>
     </div>
@@ -397,6 +412,8 @@ export default function App() {
                   {heatpumps[selected].cop[i]}COP
                   <br />
                   {heatpumps[selected].cap[i]} BTUs
+                  <br />
+                  {(val.copAverage / val.days.length).toFixed(2)} COP
                 </td>
               </tr>
             );
@@ -479,6 +496,7 @@ export default function App() {
         heatPumpKwhConsumed,
         heatPumpDuelFuel,
         fossilFuelKwh,
+        copAverage,
       } = daysBelow.reduce(
         (acc, day, j) => {
           const { cop: dayCop, cap: dayCap } = getEfficiencyAtTemp(
@@ -498,6 +516,7 @@ export default function App() {
             heatPumpKwhConsumed: acc.heatPumpKwhConsumed + dayHeatPumpKwh,
             heatPumpDuelFuel: acc.heatPumpDuelFuel + dayHeatPumpDuelFuel,
             fossilFuelKwh: acc.fossilFuelKwh + dayFossilFuelKwh,
+            copAverage: acc.copAverage + dayCop,
           };
         },
         {
@@ -505,6 +524,7 @@ export default function App() {
           heatPumpKwhConsumed: 0,
           heatPumpDuelFuel: 0,
           fossilFuelKwh: 0,
+          copAverage: 0,
         }
       );
 
@@ -544,6 +564,7 @@ export default function App() {
         heatPumpKwhConsumed,
         heatPumpDuelFuel,
         fossilFuelKwh,
+        copAverage,
       };
     });
   }
