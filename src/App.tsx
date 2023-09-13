@@ -409,11 +409,13 @@ export default function App() {
                   {val.resistiveKwhConsumed}kWh
                 </td>
                 <td>
-                  {heatpumps[selected].cop[i]}COP
+                  {heatpumps[selected].cop[i]}
+                  <em data-tooltip={`COP @ ${val.max}c`}>COP</em>
                   <br />
                   {heatpumps[selected].cap[i]} BTUs
                   <br />
-                  {(val.copAverage / val.days.length).toFixed(2)} COP
+                  {(val.copAverage / val.days.length).toFixed(2)}{' '}
+                  <em data-tooltip="COP average for range">COP</em>
                 </td>
               </tr>
             );
