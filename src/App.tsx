@@ -634,8 +634,11 @@ export default function App() {
         <p>
           <i>
             Data was pulled from{' '}
-            <a target="_blank" href="http://visualcrossing.com">
-              visualcrossing.com
+            <a
+              target="_blank"
+              href="https://open-meteo.com/en/docs/historical-weather-api"
+            >
+              open-meteo.com
             </a>{' '}
             for years 2019-2023
           </i>
