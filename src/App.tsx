@@ -10,18 +10,26 @@ import {
 import { CapacityChart } from './components/CapacityChart';
 import { useSearchParams } from 'react-router-dom';
 
+const KWH_BTU = 3412;
+
 export interface Heatpump {
   name: string;
   cop: number[];
   cap: number[];
 }
 export default function App() {
-  const ottawaWeather = hourlyOttawa.filter((_, index) => index % 1 === 0);
+  const cutoff = new Date(2022, 7, 30);
+  const ottawaWeather = hourlyOttawa
+    .filter((_, index) => index % 1 === 0)
+    .slice(0, hourlyOttawa.length)
+    .filter((hour) => hour.datetime > cutoff);
 
   const cityDataMap = {
     ottawa: ottawaWeather,
     toronto: torontoWeather,
   };
+
+  console.log(hourlyOttawa.filter((hour) => hour.temp >= 22).length);
 
   const cmGasToKwh = 10.55;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -29,7 +37,7 @@ export default function App() {
   const [indoor, setIndoor] = useState(22);
   const [designTemp, setDesignTemp] = useState(-30);
   const [designBtu, setDesignBtu] = useState(48000);
-  const [gasUsage, setGasUsage] = useState(1000);
+  const [gasUsage, setGasUsage] = useState(1300);
   const [city, setCity] = useState<Cities>('ottawa');
   const [furnaceEfficiency, setFurnaceEfficiency] = useState(0.96);
   const [costGas, setCostGas] = useState(0.45);
@@ -91,6 +99,8 @@ export default function App() {
   let rows = getRows(thresholds, weather);
   useEffect(() => {
     rows = getRows(thresholds, weather);
+    console.log(rows.map((row) => row.amountOfEnergyNeeded));
+    console.log(rows.reduce((acc, row) => acc + row.amountOfEnergyNeeded, 0));
   }, [heatpumps]);
 
   return (
@@ -399,8 +409,6 @@ export default function App() {
               }
             );
 
-            const heatPumpEnergy = val.heatPumpEnergy;
-
             return (
               <tr>
                 <td>{`${val.label} °C`}</td>
@@ -419,6 +427,9 @@ export default function App() {
                   <br />
                   {(val.copAverage / val.days.length).toFixed(2)}{' '}
                   <em data-tooltip="COP average for range">COP</em>
+                  {/* <br />
+                  {(val.heatPumpEnergy).toFixed(2)}{' '}
+                  <em data-tooltip="Output of energy">kw</em> */}
                 </td>
               </tr>
             );
@@ -502,6 +513,7 @@ export default function App() {
         heatPumpDuelFuel,
         fossilFuelKwh,
         copAverage,
+        amountOfEnergyNeeded,
       } = daysBelow.reduce(
         (acc, day, j) => {
           const { cop: dayCop, cap: dayCap } = getEfficiencyAtTemp(
@@ -514,6 +526,7 @@ export default function App() {
             heatPump: dayHeatPumpKwh,
             heatPumpDuelFuel: dayHeatPumpDuelFuel,
             fossilFuelKwh: dayFossilFuelKwh,
+            amountOfEnergyNeeded,
           } = getEnergySource(day, dayCap, dayCop);
 
           return {
@@ -521,6 +534,8 @@ export default function App() {
             heatPumpKwhConsumed: acc.heatPumpKwhConsumed + dayHeatPumpKwh,
             heatPumpDuelFuel: acc.heatPumpDuelFuel + dayHeatPumpDuelFuel,
             fossilFuelKwh: acc.fossilFuelKwh + dayFossilFuelKwh,
+            amountOfEnergyNeeded:
+              acc.amountOfEnergyNeeded + amountOfEnergyNeeded,
             copAverage: acc.copAverage + dayCop,
           };
         },
@@ -530,6 +545,7 @@ export default function App() {
           heatPumpDuelFuel: 0,
           fossilFuelKwh: 0,
           copAverage: 0,
+          amountOfEnergyNeeded: 0,
         }
       );
 
@@ -538,10 +554,8 @@ export default function App() {
       const heatingDeltaPercent = Number(heatingDelta / heatingDegrees);
 
       const gas = gasUsage * (heatingDelta / heatingDegrees);
-      const heatPumpEnergy =
-        ((heatingDelta / heatingDegrees) * kwhEquivalent) /
-        heatpumps[selected].cop[i];
-      const costSavings = gas * costGas - heatPumpEnergy * costKwh;
+
+      const costSavings = gas * costGas - heatPumpKwhConsumed * costKwh;
 
       let label = '';
 
@@ -549,6 +563,12 @@ export default function App() {
         label = `< ${val}`;
       } else {
         label = `${val} to ${thresholds[i + 1]}`;
+      }
+
+      function normalizeToYear(input: number) {
+        const numberOfDaysInDataset = weather.length / 24;
+        const numberOfDaysInHeatingSeason = 270;
+        return input * (numberOfDaysInHeatingSeason / numberOfDaysInDataset);
       }
 
       return {
@@ -561,13 +581,13 @@ export default function App() {
         percentHours: percent,
         heatingDegrees: heatingDelta,
         heatingPercent: heatingDeltaPercent,
-        heatPumpEnergy: heatPumpEnergy,
         gains: costSavings,
-        resistiveKwhConsumed,
-        heatPumpKwhConsumed,
-        heatPumpDuelFuel,
-        fossilFuelKwh,
+        resistiveKwhConsumed: normalizeToYear(resistiveKwhConsumed),
+        heatPumpKwhConsumed: normalizeToYear(heatPumpKwhConsumed),
+        heatPumpDuelFuel: normalizeToYear(heatPumpDuelFuel),
+        fossilFuelKwh: normalizeToYear(heatPumpDuelFuel),
         copAverage,
+        amountOfEnergyNeeded,
       };
     });
   }
@@ -586,15 +606,24 @@ export default function App() {
     heatPump: number;
     heatPumpDuelFuel: number;
     fossilFuelKwh: number;
+    amountOfEnergyNeeded: number;
   } {
     const requiredBtus = getDesignLoadAtTemp(hour.temp);
-    const heatingDegreesThisHour = indoor - hour.temp;
-    const proportionOfHeatingDegrees = heatingDegreesThisHour / heatingDegrees;
-    const amountOfEnergyNeeded = proportionOfHeatingDegrees * kwhEquivalent;
+    const amountOfEnergyNeeded = requiredBtus / KWH_BTU;
     const proportionHeatPump = Math.min(btusAtTemp / requiredBtus, 1);
 
     const resistiveHeat = (1 - proportionHeatPump) * amountOfEnergyNeeded;
     const heatPump = (proportionHeatPump * amountOfEnergyNeeded) / copAtTemp;
+    // Math.random() <= 0.0004 &&
+    //   console.log(
+    //     'asdf',
+    //     resistiveHeat,
+    //     hour.temp,
+    //     requiredBtus,
+    //     copAtTemp,
+    //     amountOfEnergyNeeded,
+    //     heatPump
+    //   );
     const heatPumpDuelFuel = proportionHeatPump === 1 ? heatPump : 0;
     const fossilFuelKwh = proportionHeatPump === 1 ? 0 : amountOfEnergyNeeded;
 
@@ -603,6 +632,7 @@ export default function App() {
       heatPump,
       heatPumpDuelFuel,
       fossilFuelKwh,
+      amountOfEnergyNeeded,
     };
   }
 
