@@ -13,12 +13,6 @@ import { useSearchParams } from 'react-router-dom';
 
 const KWH_BTU = 3412;
 
-// After discussions with many folks it seems consistent
-// that the manual j calculations considerably over estimate heat loss
-// this margin is somewhere arount 2.4 - 2.5x so to offset this we multiply
-// the energy needed by heatpump by 0.45
-const MAGIC_REDUCTION = 0.4;
-
 export interface Heatpump {
   name: string;
   cop: number[];
