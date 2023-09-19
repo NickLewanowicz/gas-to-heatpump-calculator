@@ -7089,7 +7089,7 @@ const hourly = {
   ],
 };
 
-// export default hourly.time.map((time, index) => ({
-//   time,
-//   temp: hourly.temperature_2m[index],
-// }));
+export default hourly.time.map((time, index) => ({
+  time,
+  temp: hourly.temperature_2m[index],
+}));

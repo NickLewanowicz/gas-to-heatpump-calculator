@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import {
   hourlyOttawa,
+  edmonton,
   torontoWeather,
   Cities,
   HourlyWeather,
@@ -44,13 +45,10 @@ export interface Row {
 }
 
 export default function App() {
-  const ottawaWeather = hourlyOttawa
-    .filter((_, index) => index % 1 === 0)
-    .slice(0, hourlyOttawa.length);
-
   const cityDataMap = {
-    ottawa: ottawaWeather,
+    ottawa: hourlyOttawa,
     toronto: torontoWeather,
+    edmonton: edmonton,
   };
 
   const cmGasToKwh = 10.55;
