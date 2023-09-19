@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ottawa,
   edmonton,
-  torontoWeather,
+  toronto,
   Cities,
   HourlyWeather,
 } from './data/weather';
@@ -47,7 +47,7 @@ export interface Row {
 export default function App() {
   const cityDataMap = {
     ottawa: ottawa,
-    toronto: torontoWeather,
+    toronto: toronto,
     edmonton: edmonton,
   };
 
@@ -396,7 +396,7 @@ export default function App() {
         <h2>Weather Data</h2>
         <p>Total hours in data set: </p>
         <p>Ottawa: {ottawa.length}</p>
-        <p>Toronto: {torontoWeather.length}</p>
+        <p>Toronto: {toronto.length}</p>
         <p>
           Data span from: {weather[0].datetime.toDateString()} -
           {weather[weather.length - 1].datetime.toDateString()} (excluding June,
@@ -572,18 +572,22 @@ export default function App() {
     heatpumpOutput: number;
     auxOutput: number;
   } {
+    const totalEnery = rows.reduce(
+      (acc, row) => acc + row.amountOfEnergyNeeded,
+      0
+    );
+    const magicNumber = kwhEquivalent / totalEnery;
     return rows.reduce(
       (acc, row) => {
         return {
           totalConsumed:
             acc.totalConsumed +
-            row.heatPumpKwhConsumed * MAGIC_REDUCTION +
-            row.resistiveKwhConsumed * MAGIC_REDUCTION,
+            row.heatPumpKwhConsumed * magicNumber +
+            row.resistiveKwhConsumed * magicNumber,
           totalOutput: acc.totalOutput + row.amountOfEnergyNeeded,
           heatpumpConsumed:
-            acc.heatpumpConsumed + row.heatPumpKwhConsumed * MAGIC_REDUCTION,
-          auxConsumed:
-            acc.auxConsumed + row.resistiveKwhConsumed * MAGIC_REDUCTION,
+            acc.heatpumpConsumed + row.heatPumpKwhConsumed * magicNumber,
+          auxConsumed: acc.auxConsumed + row.resistiveKwhConsumed * magicNumber,
           heatpumpOutput:
             acc.heatpumpOutput + row.heatPumpKwhConsumed * row.copAverage,
           auxOutput: acc.auxConsumed + row.resistiveKwhConsumed,
