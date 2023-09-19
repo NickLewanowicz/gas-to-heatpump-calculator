@@ -1,3 +1,5 @@
+import { HourlyWeather } from '.';
+
 const hourly = {
   time: [
     '2022-09-01T00:00',
@@ -7089,7 +7091,9 @@ const hourly = {
   ],
 };
 
-export default hourly.time.map((time, index) => ({
-  time,
-  temp: hourly.temperature_2m[index],
-}));
+export default hourly.time.map(
+  (time, index): HourlyWeather => ({
+    datetime: new Date(time),
+    temp: hourly.temperature_2m[index],
+  })
+);

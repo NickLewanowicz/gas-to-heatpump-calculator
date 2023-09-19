@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import {
-  hourlyOttawa,
+  ottawa,
   edmonton,
   torontoWeather,
   Cities,
@@ -46,7 +46,7 @@ export interface Row {
 
 export default function App() {
   const cityDataMap = {
-    ottawa: hourlyOttawa,
+    ottawa: ottawa,
     toronto: torontoWeather,
     edmonton: edmonton,
   };
@@ -395,7 +395,7 @@ export default function App() {
       <div>
         <h2>Weather Data</h2>
         <p>Total hours in data set: </p>
-        <p>Ottawa: {ottawaWeather.length}</p>
+        <p>Ottawa: {ottawa.length}</p>
         <p>Toronto: {torontoWeather.length}</p>
         <p>
           Data span from: {weather[0].datetime.toDateString()} -
@@ -516,6 +516,7 @@ export default function App() {
           >
             <option value="ottawa">Ottawa</option>
             <option value="toronto">Toronto</option>
+            <option value="edmonton">Edmonton</option>
           </select>
           <table>
             <tr>
