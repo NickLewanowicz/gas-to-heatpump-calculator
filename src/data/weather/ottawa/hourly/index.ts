@@ -5,12 +5,7 @@ import data_2022 from './2022';
 
 import { HourlyWeather } from '../../';
 
-const data: HourlyWeather[] = [
-  ...data_2019,
-  ...data_2020,
-  ...data_2021,
-  ...data_2022,
-].map((hour) => {
+const data: HourlyWeather[] = [...data_2022].map((hour) => {
   return {
     datetime: new Date(hour.time),
     temp: hour['temperature_2m (°C)'],
