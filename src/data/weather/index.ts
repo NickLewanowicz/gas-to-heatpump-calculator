@@ -42,6 +42,6 @@ export interface HourlyWeather {
   temp: number;
 }
 
-type Cities = 'ottawa' | 'toronto';
+type Cities = 'ottawa' | 'toronto' | 'edmonton';
 
 export { torontoWeather, hourlyOttawa, DailyWeather, Cities };
