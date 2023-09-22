@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 
 import {
-  ottawa,
-  edmonton,
-  toronto,
   Cities,
   HourlyWeather,
 } from './data/weather';
+
+import weatherData from './data'
 
 import { CapacityChart } from './components/CapacityChart';
 import { useSearchParams } from 'react-router-dom';
@@ -17,6 +16,25 @@ export interface Heatpump {
   name: string;
   cop: number[];
   cap: number[];
+}
+
+interface WeatherData {
+  [city: string]: {
+    latitude: number;
+    longitude: number;
+    hourly_units: {
+      time: string;
+      temperature_2m: string;
+    };
+    hourly: {
+      time: string[];
+      temperature_2m: number[];
+    };
+    city: string;
+    province: string;
+    startTime: string;
+    endTime: string;
+  };
 }
 
 export interface Row {
@@ -39,11 +57,9 @@ export interface Row {
 }
 
 export default function App() {
-  const cityDataMap = {
-    ottawa: ottawa,
-    toronto: toronto,
-    edmonton: edmonton,
-  };
+  const allWeather = weatherData as WeatherData
+  const cityDataMap = Object.keys(allWeather);
+  const cities = Object.keys(allWeather);
 
   const cmGasToKwh = 10.55;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -389,8 +405,8 @@ export default function App() {
       <div>
         <h2>Weather Data</h2>
         <p>Total hours in data set: </p>
-        <p>Ottawa: {ottawa.length}</p>
-        <p>Toronto: {toronto.length}</p>
+        <p>Ottawa: {weather['Ottawa'].length}</p>
+        <p>Toronto: {allWeather['Toronto'].length}</p>
         <p>
           Data span from: {weather[0].datetime.toDateString()} -
           {weather[weather.length - 1].datetime.toDateString()} (excluding June,
