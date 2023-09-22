@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
-import {
-  Cities,
-  HourlyWeather,
-} from './data/weather';
+import { Cities, HourlyWeather } from './data/weather';
 
-import weatherData from './data'
+import weatherData from './data';
 
 import { CapacityChart } from './components/CapacityChart';
 import { useSearchParams } from 'react-router-dom';
@@ -57,8 +54,7 @@ export interface Row {
 }
 
 export default function App() {
-  const allWeather = weatherData as WeatherData
-  const cityDataMap = Object.keys(allWeather);
+  const allWeather = weatherData as WeatherData;
   const cities = Object.keys(allWeather);
 
   const cmGasToKwh = 10.55;
@@ -68,7 +64,7 @@ export default function App() {
   const [designTemp, setDesignTemp] = useState(-30);
   const [designBtu, setDesignBtu] = useState(48000);
   const [gasUsage, setGasUsage] = useState(1300);
-  const [city, setCity] = useState<Cities>('ottawa');
+  const [city, setCity] = useState<string>('Ottawa');
   const [furnaceEfficiency, setFurnaceEfficiency] = useState(0.96);
   const [costGas, setCostGas] = useState(0.45);
   const [costKwh, setCostkwh] = useState(0.1);
@@ -82,13 +78,17 @@ export default function App() {
   ]);
 
   const thresholds = [indoor, 8.33, -8.33, -15, -30];
-  const weather = cityDataMap[city].slice();
 
   const newHeatpump = () => ({
     name: `Heatpump #${heatpumps.length + 1}`,
     cap: [35000, 35000, 24000, 28000, 16000, 0],
     cop: [3.5, 3, 2, 1.8, 1.2, 1],
   });
+
+  const weather = allWeather[city].hourly.time.map((hour, i) => ({
+    datetime: new Date(hour),
+    temp: allWeather[city].hourly.temperature_2m[i],
+  }));
 
   const kwhEquivalent = gasUsage * cmGasToKwh * furnaceEfficiency;
   const heatingDegrees = weather.reduce((acc, hour, i) => {
@@ -404,9 +404,10 @@ export default function App() {
     return (
       <div>
         <h2>Weather Data</h2>
-        <p>Total hours in data set: </p>
-        <p>Ottawa: {weather['Ottawa'].length}</p>
-        <p>Toronto: {allWeather['Toronto'].length}</p>
+        <p>
+          There are 25 cities currently in the dataset and each contains data
+          from:{' '}
+        </p>
         <p>
           Data span from: {weather[0].datetime.toDateString()} -
           {weather[weather.length - 1].datetime.toDateString()} (excluding June,
@@ -524,9 +525,11 @@ export default function App() {
             onChange={(val) => setCity(val.currentTarget.value as Cities)}
             value={city}
           >
-            <option value="ottawa">Ottawa</option>
-            <option value="toronto">Toronto</option>
-            <option value="edmonton">Edmonton</option>
+            {cities.map((city) => (
+              <option value={city}>
+                {city} - {allWeather[city].province}
+              </option>
+            ))}
           </select>
           <table>
             <tr>
