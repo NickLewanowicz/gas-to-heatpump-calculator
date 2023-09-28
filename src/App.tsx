@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
-import {
-  ottawa,
-  edmonton,
-  toronto,
-  Cities,
-  HourlyWeather,
-} from './data/weather';
+import { Cities, HourlyWeather } from './data/weather';
+
+import weatherData from './data';
 
 import { CapacityChart } from './components/CapacityChart';
 import { useSearchParams } from 'react-router-dom';
@@ -17,6 +13,25 @@ export interface Heatpump {
   name: string;
   cop: number[];
   cap: number[];
+}
+
+interface WeatherData {
+  [city: string]: {
+    latitude: number;
+    longitude: number;
+    hourly_units: {
+      time: string;
+      temperature_2m: string;
+    };
+    hourly: {
+      time: string[];
+      temperature_2m: number[];
+    };
+    city: string;
+    province: string;
+    startTime: string;
+    endTime: string;
+  };
 }
 
 export interface Row {
@@ -39,11 +54,8 @@ export interface Row {
 }
 
 export default function App() {
-  const cityDataMap = {
-    ottawa: ottawa,
-    toronto: toronto,
-    edmonton: edmonton,
-  };
+  const allWeather = weatherData as WeatherData;
+  const cities = Object.keys(allWeather).sort();
 
   const cmGasToKwh = 10.55;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -52,7 +64,7 @@ export default function App() {
   const [designTemp, setDesignTemp] = useState(-30);
   const [designBtu, setDesignBtu] = useState(48000);
   const [gasUsage, setGasUsage] = useState(1300);
-  const [city, setCity] = useState<Cities>('ottawa');
+  const [city, setCity] = useState<string>('Ottawa');
   const [furnaceEfficiency, setFurnaceEfficiency] = useState(0.96);
   const [costGas, setCostGas] = useState(0.45);
   const [costKwh, setCostkwh] = useState(0.1);
@@ -66,13 +78,17 @@ export default function App() {
   ]);
 
   const thresholds = [indoor, 8.33, -8.33, -15, -30];
-  const weather = cityDataMap[city].slice();
 
   const newHeatpump = () => ({
     name: `Heatpump #${heatpumps.length + 1}`,
     cap: [35000, 35000, 24000, 28000, 16000, 0],
     cop: [3.5, 3, 2, 1.8, 1.2, 1],
   });
+
+  const weather = allWeather[city].hourly.time.map((hour, i) => ({
+    datetime: new Date(hour),
+    temp: allWeather[city].hourly.temperature_2m[i],
+  }));
 
   const kwhEquivalent = gasUsage * cmGasToKwh * furnaceEfficiency;
   const heatingDegrees = weather.reduce((acc, hour, i) => {
@@ -185,7 +201,7 @@ export default function App() {
                   <br />
                   {heatpumps[selected].cap[i]} BTUs
                   <br />
-                  {(val.copAverage / val.hours.length).toFixed(2)}{' '}
+                  {val.copAverage.toFixed(2)}{' '}
                   <em data-tooltip="COP average for range">COP</em>
                   {/* <br />
                   {(val.heatPumpEnergy).toFixed(2)}{' '}
@@ -279,6 +295,9 @@ export default function App() {
             amountOfEnergyNeeded,
           } = getEnergySource(hour, hourCap, hourCop);
 
+          if (hour.temp < -29) {
+            console.log(hour.temp, hourCop);
+          }
           return {
             heatingDelta: acc.heatingDelta + (indoor - hour.temp),
             resistiveKwhConsumed: acc.resistiveKwhConsumed + hourResitiveKwh,
@@ -330,7 +349,7 @@ export default function App() {
         heatPumpKwhConsumed: heatPumpKwhConsumed,
         heatPumpDuelFuel: heatPumpDuelFuel,
         fossilFuelKwh: fossilFuelKwh,
-        copAverage,
+        copAverage: copAverage / hoursInRange.length,
         amountOfEnergyNeeded,
       };
     });
@@ -388,9 +407,10 @@ export default function App() {
     return (
       <div>
         <h2>Weather Data</h2>
-        <p>Total hours in data set: </p>
-        <p>Ottawa: {ottawa.length}</p>
-        <p>Toronto: {toronto.length}</p>
+        <p>
+          There are 25 cities currently in the dataset and each contains data
+          from:{' '}
+        </p>
         <p>
           Data span from: {weather[0].datetime.toDateString()} -
           {weather[weather.length - 1].datetime.toDateString()} (excluding June,
@@ -508,9 +528,11 @@ export default function App() {
             onChange={(val) => setCity(val.currentTarget.value as Cities)}
             value={city}
           >
-            <option value="ottawa">Ottawa</option>
-            <option value="toronto">Toronto</option>
-            <option value="edmonton">Edmonton</option>
+            {cities.map((city) => (
+              <option value={city}>
+                {city} - {allWeather[city].province}
+              </option>
+            ))}
           </select>
           <table>
             <tr>
@@ -565,6 +587,8 @@ export default function App() {
     auxConsumed: number;
     heatpumpOutput: number;
     auxOutput: number;
+    heatPumpDuelFuelConsumed: number;
+    fossilFuelKwhTotal: number;
   } {
     const totalEnery = rows.reduce(
       (acc, row) => acc + row.amountOfEnergyNeeded,
@@ -585,6 +609,10 @@ export default function App() {
           heatpumpOutput:
             acc.heatpumpOutput + row.heatPumpKwhConsumed * row.copAverage,
           auxOutput: acc.auxConsumed + row.resistiveKwhConsumed,
+          heatPumpDuelFuelConsumed:
+            acc.heatPumpDuelFuelConsumed + row.heatPumpDuelFuel * magicNumber,
+          fossilFuelKwhTotal:
+            acc.fossilFuelKwhTotal + row.fossilFuelKwh * magicNumber,
         };
       },
       {
@@ -594,6 +622,8 @@ export default function App() {
         auxConsumed: 0,
         heatpumpOutput: 0,
         auxOutput: 0,
+        heatPumpDuelFuelConsumed: 0,
+        fossilFuelKwhTotal: 0,
       }
     );
   }
@@ -619,7 +649,7 @@ export default function App() {
             </tr>
             <tr>
               Baseboard Heat
-              <td>{kwhEquivalent} kWh</td>
+              <td>{kwhEquivalent.toFixed(2)} kWh</td>
               <td> ${Math.round(kwhEquivalent * costKwh)}</td>
             </tr>
             {heatpumps.map((heatpump) => {
@@ -643,27 +673,16 @@ export default function App() {
                 <tr>
                   {heatpump.name} + gas backup
                   <td>
-                    {Math.round(
-                      rows.reduce((acc, row) => acc + row.heatPumpDuelFuel, 0)
-                    )}
+                    {Math.round(totals.heatPumpDuelFuelConsumed)}
                     kWh
                     <br />
-                    {Math.round(
-                      rows.reduce((acc, row) => acc + row.fossilFuelKwh, 0) /
-                        cmGasToKwh
-                    )}{' '}
-                    m3
+                    {Math.round(totals.fossilFuelKwhTotal / cmGasToKwh)} m3
                   </td>
                   <td>
                     $
                     {Math.round(
-                      rows.reduce(
-                        (acc, { heatPumpDuelFuel, fossilFuelKwh }) =>
-                          acc +
-                          heatPumpDuelFuel * costKwh +
-                          (fossilFuelKwh / cmGasToKwh) * costGas,
-                        0
-                      )
+                      totals.heatPumpDuelFuelConsumed * costKwh +
+                        (totals.fossilFuelKwhTotal / cmGasToKwh) * costGas
                     )}
                   </td>
                 </tr>
@@ -685,15 +704,13 @@ export default function App() {
           kwh
         </p>
         <p>
-          <em data-tooltip="Average COP weighted by heating degree hours (ie hours are weighted proportionally to their heating degrees">
+          <em data-tooltip="Average COP weighted by heating degree hours (ie hours are weighted proportionally to their heating degrees)">
             Average COP:
           </em>{' '}
           {rows
             .reduce(
               (acc, row) =>
-                acc +
-                (row.copAverage / row.hours.length) *
-                  (row.heatingDegrees / heatingDegrees),
+                acc + row.copAverage * (row.heatingDegrees / heatingDegrees),
               0
             )
             .toFixed(2)}{' '}
@@ -891,7 +908,8 @@ export default function App() {
   ) {
     const cap = heatpump.cap;
     const cop = heatpump.cop;
-    const arr: { temp: number; cap: number; cop: number }[] = thresholds.map(
+    const temps = [...thresholds, -100];
+    const arr: { temp: number; cap: number; cop: number }[] = temps.map(
       (val, i) => ({
         temp: val,
         cap: cap[i],
@@ -906,13 +924,16 @@ export default function App() {
 
     const capSlope =
       (cap[minIndex] - cap[minIndex - 1]) /
-      (thresholds[minIndex] - thresholds[minIndex - 1]);
+      (temps[minIndex] - temps[minIndex - 1]);
     const copSlope =
       (cop[minIndex] - cop[minIndex - 1]) /
-      (thresholds[minIndex] - thresholds[minIndex - 1]);
-    const capIntercept = cap[minIndex] - capSlope * thresholds[minIndex];
-    const copIntercept = cop[minIndex] - copSlope * thresholds[minIndex];
+      (temps[minIndex] - temps[minIndex - 1]);
+    const capIntercept = cap[minIndex] - capSlope * temps[minIndex];
+    const copIntercept = cop[minIndex] - copSlope * temps[minIndex];
 
+    if (temp < -29) {
+      console.log(arr, thresholds);
+    }
     return {
       cap: capSlope * temp + capIntercept,
       cop: copSlope * temp + copIntercept,
