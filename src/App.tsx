@@ -293,6 +293,7 @@ export default function App() {
             heatPumpDuelFuel: hourHeatPumpDuelFuel,
             fossilFuelKwh: hourFossilFuelKwh,
             amountOfEnergyNeeded,
+            effectiveCop,
           } = getEnergySource(hour, hourCap, hourCop);
 
           if (hour.temp < -29) {
@@ -306,7 +307,7 @@ export default function App() {
             fossilFuelKwh: acc.fossilFuelKwh + hourFossilFuelKwh,
             amountOfEnergyNeeded:
               acc.amountOfEnergyNeeded + amountOfEnergyNeeded,
-            copAverage: acc.copAverage + hourCop,
+            copAverage: acc.copAverage + effectiveCop,
           };
         },
         {
@@ -370,6 +371,7 @@ export default function App() {
     heatPumpDuelFuel: number;
     fossilFuelKwh: number;
     amountOfEnergyNeeded: number;
+    effectiveCop: number;
   } {
     const requiredBtus = getDesignLoadAtTemp(hour.temp);
     const amountOfEnergyNeeded = requiredBtus / KWH_BTU;
@@ -379,6 +381,8 @@ export default function App() {
     const heatPump = (proportionHeatPump * amountOfEnergyNeeded) / copAtTemp;
     const heatPumpDuelFuel = proportionHeatPump === 1 ? heatPump : 0;
     const fossilFuelKwh = proportionHeatPump === 1 ? 0 : amountOfEnergyNeeded;
+    const effectiveCop =
+      proportionHeatPump * copAtTemp + 1 * (1 - proportionHeatPump);
 
     return {
       resistiveHeat,
@@ -386,6 +390,7 @@ export default function App() {
       heatPumpDuelFuel,
       fossilFuelKwh,
       amountOfEnergyNeeded,
+      effectiveCop,
     };
   }
 
