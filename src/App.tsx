@@ -68,6 +68,7 @@ export default function App() {
   const cmGasToKwh = 10.55;
   const [searchParams, setSearchParams] = useSearchParams();
   const [init, setInit] = useState(false);
+  const [rows, setRows] = useState([]);
   const formState = useFormState();
   const {
     heatpumps,
@@ -96,14 +97,6 @@ export default function App() {
     costKwh,
     setCostKwh,
   } = formState;
-
-  // const [heatpumps, setHeatpumps] = useState<Heatpump[]>([
-  //   {
-  //     name: 'Heatpump #1',
-  //     cap: [35000, 35000, 24000, 28000, 16000, 0],
-  //     cop: [3.5, 3, 2, 1.8, 1.2, 1],
-  //   },
-  // ]);
 
   const thresholds = [indoor, 8.33, -8.33, -15, -30];
 
@@ -158,9 +151,8 @@ export default function App() {
     }
   };
 
-  let rows = getRows(thresholds, weather);
   useEffect(() => {
-    rows = getRows(thresholds, weather);
+    setRows(getRows(thresholds, weather));
   }, [heatpumps]);
 
   return (
@@ -863,13 +855,7 @@ export default function App() {
           <input
             value={heatpump.name}
             onChange={(v) => {
-              setHeatpumps((prevState) => {
-                const updated = [...prevState];
-                const current = updated[selected];
-                current.name = v.target.value;
-
-                return updated;
-              });
+              updateHeatpump(selected, { name: v.target.value });
             }}
           />
         </div>
@@ -894,13 +880,9 @@ export default function App() {
                     type="number"
                     value={heatpumps[selected].cop[i]}
                     onChange={(v) => {
-                      setHeatpumps((prevState) => {
-                        const updated = [...prevState];
-                        const current = updated[selected];
-                        current.cop[i] = Number(v.target.value);
-
-                        return updated;
-                      });
+                      const updated = { ...heatpump[selected] };
+                      updated.cop[i] = Number(v.target.value);
+                      updateHeatpump(selected, updated);
                     }}
                   />
                 </td>
@@ -909,13 +891,9 @@ export default function App() {
                     type="number"
                     value={heatpumps[selected].cap[i]}
                     onChange={(v) => {
-                      setHeatpumps((prevState) => {
-                        const updated = [...prevState];
-                        const current = updated[selected];
-                        current.cap[i] = Number(v.target.value);
-
-                        return updated;
-                      });
+                      const updated = { ...heatpump[selected] };
+                      updated.cap[i] = Number(v.target.value);
+                      updateHeatpump(selected, updated);
                     }}
                   />
                 </td>

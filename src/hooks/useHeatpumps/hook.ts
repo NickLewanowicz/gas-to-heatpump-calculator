@@ -10,7 +10,7 @@ interface HeatpumpsHook {
   heatpumps: Heatpump[];
   addHeatpump: (newHeatpump: Heatpump) => void;
   removeHeatpump: (index: number) => void;
-  updateHeatpump: (index: number, updatedHeatpump: Heatpump) => void;
+  updateHeatpump: (index: number, updatedHeatpump: Partial<Heatpump>) => void;
   selected: number;
   setSelected: Dispatch<SetStateAction<number>>;
 }
@@ -32,10 +32,15 @@ export function useHeatpumps(initialHeatpumps: Heatpump[]): HeatpumpsHook {
   };
 
   // Update a heat pump by index
-  const updateHeatpump = (index: number, updatedHeatpump: Heatpump) => {
-    const updatedHeatpumps = [...heatpumps];
-    updatedHeatpumps[index] = updatedHeatpump;
-    setHeatpumps(updatedHeatpumps);
+  const updateHeatpump = (
+    index: number,
+    updatedHeatpump: Partial<Heatpump>
+  ) => {
+    setHeatpumps(
+      heatpumps.map((heatpump, i) =>
+        index === i ? { ...heatpump, ...updatedHeatpump } : heatpump
+      )
+    );
   };
 
   return {
