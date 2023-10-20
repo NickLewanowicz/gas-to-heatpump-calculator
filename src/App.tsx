@@ -821,7 +821,7 @@ export default function App() {
               style={{ flex: 1 }}
               role="button"
               className="outline"
-              onClick={() => setHeatpumps([...heatpumps, newHeatpump()])}
+              onClick={() => addHeatpump(newHeatpump())}
             >
               + add heatpump
             </span>
@@ -831,14 +831,8 @@ export default function App() {
                 role="button"
                 className="outline"
                 onClick={() => {
+                  removeHeatpump(selected);
                   selected >= heatpumps.length - 1 && setSelected(0);
-                  setHeatpumps((prevState) => {
-                    const updatedArray = prevState.filter(
-                      (_, i) => i !== selected
-                    );
-
-                    return updatedArray;
-                  });
                 }}
               >
                 - remove heatpump
