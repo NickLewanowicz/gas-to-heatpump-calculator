@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "module": "ESNext",
     "jsx": "react",
     "resolveJsonModule": true,
     "esModuleInterop": true

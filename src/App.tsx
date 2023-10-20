@@ -6,6 +6,7 @@ import weatherData from './data';
 
 import { CapacityChart } from './components/CapacityChart';
 import { useSearchParams } from 'react-router-dom';
+import { useFormState } from './hooks';
 
 const KWH_BTU = 3412;
 
@@ -60,14 +61,27 @@ export default function App() {
   const cmGasToKwh = 10.55;
   const [searchParams, setSearchParams] = useSearchParams();
   const [init, setInit] = useState(false);
-  const [indoor, setIndoor] = useState(22);
-  const [designTemp, setDesignTemp] = useState(-30);
-  const [designBtu, setDesignBtu] = useState(48000);
-  const [gasUsage, setGasUsage] = useState(1300);
-  const [city, setCity] = useState<string>('Ottawa');
-  const [furnaceEfficiency, setFurnaceEfficiency] = useState(0.96);
-  const [costGas, setCostGas] = useState(0.45);
-  const [costKwh, setCostkwh] = useState(0.1);
+  const formState = useFormState();
+
+  const {
+    indoor,
+    setIndoor,
+    designTemp,
+    setDesignTemp,
+    designBtu,
+    setDesignBtu,
+    gasUsage,
+    setGasUsage,
+    city,
+    setCity,
+    furnaceEfficiency,
+    setFurnaceEfficiency,
+    costGas,
+    setCostGas,
+    costKwh,
+    setCostkwh,
+  } = useFormState();
+
   const [selected, setSelected] = useState(0);
   const [heatpumps, setHeatpumps] = useState<Heatpump[]>([
     {
