@@ -1,55 +1,49 @@
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 
-export interface Heatpump {
-  performance: Performance[];
+interface Heatpump {
   name: string;
-  id: number;
+  cap: number[];
+  cop: number[];
 }
 
-export interface Performance {
-  temp: number;
-  cop: number;
-  cap: number;
-  index: number;
-}
-
-export interface HeatpumpInterface {
+interface HeatpumpsHook {
   heatpumps: Heatpump[];
-  updateHeatpump(heatpump: Partial<Heatpump>): void;
-  addHeatpump(): void;
-  deleteHeatpump(id: number): void;
+  addHeatpump: (newHeatpump: Heatpump) => void;
+  removeHeatpump: (index: number) => void;
+  updateHeatpump: (index: number, updatedHeatpump: Heatpump) => void;
+  selected: number;
+  setSelected: Dispatch<SetStateAction<number>>;
 }
 
-export function useHeatpumps(): HeatpumpInterface {
-  const [heatpumps, setHeatpumps] = useState([
-    { performance: [], name: '', id: 1 },
-  ]);
+export function useHeatpumps(initialHeatpumps: Heatpump[]): HeatpumpsHook {
+  const [heatpumps, setHeatpumps] = useState<Heatpump[]>(initialHeatpumps);
+  const [selected, setSelected] = useState(0);
+
+  // Add a new heat pump
+  const addHeatpump = (newHeatpump: Heatpump) => {
+    setHeatpumps([...heatpumps, newHeatpump]);
+  };
+
+  // Remove a heat pump by index
+  const removeHeatpump = (index: number) => {
+    const updatedHeatpumps = [...heatpumps];
+    updatedHeatpumps.splice(index, 1);
+    setHeatpumps(updatedHeatpumps);
+  };
+
+  // Update a heat pump by index
+  const updateHeatpump = (index: number, updatedHeatpump: Heatpump) => {
+    const updatedHeatpumps = [...heatpumps];
+    updatedHeatpumps[index] = updatedHeatpump;
+    setHeatpumps(updatedHeatpumps);
+  };
 
   return {
     heatpumps,
-    updateHeatpump,
     addHeatpump,
-    deleteHeatpump,
+    removeHeatpump,
+    updateHeatpump,
+    selected,
+    setSelected,
   };
-  function updateHeatpump(heatpump: Partial<Heatpump>) {
-    setHeatpumps((previousState) => {
-      const newState = previousState.map((pump) =>
-        heatpump.id === pump.id ? { ...pump, ...heatpump } : pump
-      );
-      return newState;
-    });
-  }
-  function addHeatpump() {
-    setHeatpumps([...heatpumps, initHeatpump()]);
-  }
-  function deleteHeatpump(id: number) {
-    setHeatpumps((previousState) => {
-      const newState = previousState.filter(({ id: curr }) => curr != id);
-      return newState;
-    });
-  }
-
-  function initHeatpump() {
-    return { performance: [], name: '', id: heatpumps.length + 1 };
-  }
 }

@@ -7,6 +7,7 @@ import weatherData from './data';
 import { CapacityChart } from './components/CapacityChart';
 import { useSearchParams } from 'react-router-dom';
 import { useFormState } from './hooks';
+import { useHeatpumps } from './hooks/useHeatpumps/hook';
 
 const KWH_BTU = 3412;
 
@@ -54,6 +55,12 @@ export interface Row {
   amountOfEnergyNeeded: number;
 }
 
+const initialHeatpump = {
+  name: 'Heatpump #1',
+  cap: [35000, 35000, 24000, 28000, 16000, 0],
+  cop: [3.5, 3, 2, 1.8, 1.2, 1],
+};
+
 export default function App() {
   const allWeather = weatherData as WeatherData;
   const cities = Object.keys(allWeather).sort();
@@ -62,6 +69,14 @@ export default function App() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [init, setInit] = useState(false);
   const formState = useFormState();
+  const {
+    heatpumps,
+    addHeatpump,
+    removeHeatpump,
+    updateHeatpump,
+    selected,
+    setSelected,
+  } = useHeatpumps([initialHeatpump]);
 
   const {
     indoor,
@@ -79,17 +94,16 @@ export default function App() {
     costGas,
     setCostGas,
     costKwh,
-    setCostkwh,
-  } = useFormState();
+    setCostKwh,
+  } = formState;
 
-  const [selected, setSelected] = useState(0);
-  const [heatpumps, setHeatpumps] = useState<Heatpump[]>([
-    {
-      name: 'Heatpump #1',
-      cap: [35000, 35000, 24000, 28000, 16000, 0],
-      cop: [3.5, 3, 2, 1.8, 1.2, 1],
-    },
-  ]);
+  // const [heatpumps, setHeatpumps] = useState<Heatpump[]>([
+  //   {
+  //     name: 'Heatpump #1',
+  //     cap: [35000, 35000, 24000, 28000, 16000, 0],
+  //     cop: [3.5, 3, 2, 1.8, 1.2, 1],
+  //   },
+  // ]);
 
   const thresholds = [indoor, 8.33, -8.33, -15, -30];
 
@@ -110,10 +124,14 @@ export default function App() {
   }, 0);
 
   useEffect(() => {
-    const heatpumps = JSON.parse(decodeURI(searchParams.get('heatpumps')));
+    const heatpumps = JSON.parse(
+      decodeURI(searchParams.get('heatpumps'))
+    ) as Heatpump[];
     setSearchParams(searchParams);
     if (heatpumps && heatpumps.length) {
-      setHeatpumps(heatpumps);
+      heatpumps.forEach((heatpump, i) =>
+        i === 0 ? updateHeatpump(i, heatpump) : addHeatpump(heatpump)
+      );
     }
     setInit(true);
   }, []);
@@ -134,17 +152,15 @@ export default function App() {
   };
   const doKwhCost = (num: number) => {
     if (typeof num !== 'number') {
-      setCostkwh(0);
+      setCostKwh(0);
     } else {
-      setCostkwh(num);
+      setCostKwh(num);
     }
   };
 
   let rows = getRows(thresholds, weather);
   useEffect(() => {
     rows = getRows(thresholds, weather);
-    console.log(rows.map((row) => row.amountOfEnergyNeeded));
-    console.log(rows.reduce((acc, row) => acc + row.amountOfEnergyNeeded, 0));
   }, [heatpumps]);
 
   return (
@@ -310,9 +326,6 @@ export default function App() {
             effectiveCop,
           } = getEnergySource(hour, hourCap, hourCop);
 
-          if (hour.temp < -29) {
-            console.log(hour.temp, hourCop);
-          }
           return {
             heatingDelta: acc.heatingDelta + (indoor - hour.temp),
             resistiveKwhConsumed: acc.resistiveKwhConsumed + hourResitiveKwh,
@@ -950,9 +963,6 @@ export default function App() {
     const capIntercept = cap[minIndex] - capSlope * temps[minIndex];
     const copIntercept = cop[minIndex] - copSlope * temps[minIndex];
 
-    if (temp < -29) {
-      console.log(arr, thresholds);
-    }
     return {
       cap: capSlope * temp + capIntercept,
       cop: copSlope * temp + copIntercept,
