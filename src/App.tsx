@@ -880,7 +880,7 @@ export default function App() {
                     type="number"
                     value={heatpumps[selected].cop[i]}
                     onChange={(v) => {
-                      const updated = { ...heatpump[selected] };
+                      let updated = { ...heatpumps[selected] };
                       updated.cop[i] = Number(v.target.value);
                       updateHeatpump(selected, updated);
                     }}
@@ -891,7 +891,7 @@ export default function App() {
                     type="number"
                     value={heatpumps[selected].cap[i]}
                     onChange={(v) => {
-                      const updated = { ...heatpump[selected] };
+                      let updated = { ...heatpumps[selected] };
                       updated.cap[i] = Number(v.target.value);
                       updateHeatpump(selected, updated);
                     }}
