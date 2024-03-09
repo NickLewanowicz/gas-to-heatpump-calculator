@@ -3,7 +3,13 @@
     "module": "ESNext",
     "jsx": "react",
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@components/*": ["components/*"]
+    }
   },
   "include": ["src", "**/*.pdf"]
 }

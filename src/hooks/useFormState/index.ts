@@ -1,1 +1,1 @@
-export { useFormState } from './hook';
+export { FuelType, useFormState } from './hook'

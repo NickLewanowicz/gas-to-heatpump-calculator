@@ -1,75 +1,75 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
 
-import { Cities, HourlyWeather } from './data/weather';
+import { Cities, HourlyWeather } from './data/weather'
 
-import weatherData from './data';
+import weatherData from './data'
 
-import { CapacityChart } from './components/CapacityChart';
-import { useSearchParams } from 'react-router-dom';
-import { useFormState } from './hooks';
-import { useHeatpumps } from './hooks/useHeatpumps/hook';
+import { CapacityChart } from './components/CapacityChart'
+import { useSearchParams } from 'react-router-dom'
+import { FuelType, useFormState } from './hooks'
+import { useHeatpumps } from './hooks/useHeatpumps/hook'
 
-const KWH_BTU = 3412;
+const KWH_BTU = 3412
+const cmGasToKwh = 10.55
 
 export interface Heatpump {
-  name: string;
-  cop: number[];
-  cap: number[];
+  name: string
+  cop: number[]
+  cap: number[]
 }
 
 interface WeatherData {
   [city: string]: {
-    latitude: number;
-    longitude: number;
+    latitude: number
+    longitude: number
     hourly_units: {
-      time: string;
-      temperature_2m: string;
-    };
+      time: string
+      temperature_2m: string
+    }
     hourly: {
-      time: string[];
-      temperature_2m: number[];
-    };
-    city: string;
-    province: string;
-    startTime: string;
-    endTime: string;
-  };
+      time: string[]
+      temperature_2m: number[]
+    }
+    city: string
+    province: string
+    startTime: string
+    endTime: string
+  }
 }
 
 export interface Row {
-  label: String;
-  threshold: number;
-  max: number;
-  min: number;
-  hours: HourlyWeather[];
-  num: number;
-  percentHours: number;
-  heatingDegrees: number;
-  heatingPercent: number;
-  gains: number;
-  resistiveKwhConsumed: number;
-  heatPumpKwhConsumed: number;
-  heatPumpDuelFuel: number;
-  fossilFuelKwh: number;
-  copAverage: number;
-  amountOfEnergyNeeded: number;
+  label: String
+  threshold: number
+  max: number
+  min: number
+  hours: HourlyWeather[]
+  num: number
+  percentHours: number
+  heatingDegrees: number
+  heatingPercent: number
+  gains: number
+  resistiveKwhConsumed: number
+  heatPumpKwhConsumed: number
+  heatPumpDuelFuel: number
+  fossilFuelKwh: number
+  copAverage: number
+  amountOfEnergyNeeded: number
 }
 
 const initialHeatpump = {
   name: 'Heatpump #1',
   cap: [35000, 35000, 24000, 28000, 16000, 0],
   cop: [3.5, 3, 2, 1.8, 1.2, 1],
-};
+}
 
 export default function App() {
-  const allWeather = weatherData as WeatherData;
-  const cities = Object.keys(allWeather).sort();
+  const allWeather = weatherData as WeatherData
+  const cities = Object.keys(allWeather).sort()
 
-  const cmGasToKwh = 10.55;
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [init, setInit] = useState(false);
-  const [rows, setRows] = useState([]);
-  const formState = useFormState();
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [init, setInit] = useState(false)
+  const [rows, setRows] = useState([])
+  const formState = useFormState()
   const {
     heatpumps,
     addHeatpump,
@@ -77,7 +77,7 @@ export default function App() {
     updateHeatpump,
     selected,
     setSelected,
-  } = useHeatpumps([initialHeatpump]);
+  } = useHeatpumps([initialHeatpump])
 
   const {
     indoor,
@@ -96,64 +96,69 @@ export default function App() {
     setCostGas,
     costKwh,
     setCostKwh,
-  } = formState;
+    fuelType,
+    setFuelType,
+    fuelUsage,
+    setFuelUsage
+  } = formState
 
-  const thresholds = [indoor, 8.33, -8.33, -15, -30];
+  const thresholds = [indoor, 8.33, -8.33, -15, -30]
 
   const newHeatpump = () => ({
     name: `Heatpump #${heatpumps.length + 1}`,
     cap: [35000, 35000, 24000, 28000, 16000, 0],
     cop: [3.5, 3, 2, 1.8, 1.2, 1],
-  });
+  })
 
   const weather = allWeather[city].hourly.time.map((hour, i) => ({
     datetime: new Date(hour),
     temp: allWeather[city].hourly.temperature_2m[i],
-  }));
+  }))
 
-  const kwhEquivalent = gasUsage * cmGasToKwh * furnaceEfficiency;
+  const kwhEquivalent = convertToKwh(fuelType, fuelUsage) * furnaceEfficiency
   const heatingDegrees = weather.reduce((acc, hour, i) => {
-    return acc + (indoor - hour.temp);
-  }, 0);
+    return acc + (indoor - hour.temp)
+  }, 0)
 
   useEffect(() => {
     const heatpumps = JSON.parse(
       decodeURI(searchParams.get('heatpumps'))
-    ) as Heatpump[];
-    setSearchParams(searchParams);
+    ) as Heatpump[]
+    setSearchParams(searchParams)
     if (heatpumps && heatpumps.length) {
       heatpumps.forEach((heatpump, i) =>
         i === 0 ? updateHeatpump(i, heatpump) : addHeatpump(heatpump)
-      );
+      )
     }
-    setInit(true);
-  }, []);
+    setInit(true)
+  }, [])
 
   useEffect(() => {
     if (init) {
-      searchParams.set('heatpumps', encodeURI(JSON.stringify(heatpumps)));
-      setSearchParams(searchParams);
+      searchParams.set('heatpumps', encodeURI(JSON.stringify(heatpumps)))
+      setSearchParams(searchParams)
     }
-  }, [heatpumps]);
+  }, [heatpumps])
 
   const doGasCost = (num: number) => {
     if (typeof num !== 'number') {
-      setCostGas(0);
+      setCostGas(0)
     } else {
-      setCostGas(num);
+      setCostGas(num)
     }
-  };
+  }
   const doKwhCost = (num: number) => {
     if (typeof num !== 'number') {
-      setCostKwh(0);
+      setCostKwh(0)
     } else {
-      setCostKwh(num);
+      setCostKwh(num)
     }
-  };
+  }
 
   useEffect(() => {
-    setRows(getRows(thresholds, weather));
-  }, [heatpumps]);
+    setRows(getRows(thresholds, weather, heatpumps[selected]))
+    console.log('qwer')
+  }, [heatpumps, indoor, designBtu])
 
   return (
     <div className="container">
@@ -173,16 +178,17 @@ export default function App() {
           <details>
             <summary>Performance by temperature range</summary>
             <CapacityChart
-              data={getCapacityData(
+              data={getChartData(
                 getRows(thresholds, weather, heatpumps[selected])
               )}
+              duelFuelBreakeven={costKwh / (costGas / (convertToKwh(fuelType, 1) * furnaceEfficiency))}
             />
           </details>
         </article>
         {renderResults()}
       </div>
     </div>
-  );
+  )
 
   function consumptionHourBreakdown() {
     return (
@@ -198,14 +204,14 @@ export default function App() {
             const percent = val.percentHours.toLocaleString(undefined, {
               style: 'percent',
               minimumFractionDigits: 2,
-            });
+            })
             const heatingDeltaPercent = val.heatingPercent.toLocaleString(
               undefined,
               {
                 style: 'percent',
                 minimumFractionDigits: 2,
               }
-            );
+            )
 
             return (
               <tr>
@@ -230,21 +236,133 @@ export default function App() {
                   <em data-tooltip="Output of energy">kw</em> */}
                 </td>
               </tr>
-            );
+            )
           })}
         </table>
       </figure>
-    );
+    )
   }
 
-  function getCapacityData(rows: ReturnType<typeof getRows>) {
+  function getChartData(rows: Row[]) {
+    const heatpump = heatpumps[selected]
+    const labelCount = 10
+    const thresholds = rows.map((row) => row.threshold)
+    const capValues = heatpump.cap
+    const copValues = heatpump.cop
+
+    // Calculate the step size for x-axis labels
+    const stepSize = thresholds.length / labelCount
+
+    // Create an array of data points with x and y values for CAP, COP, and Design Load
+    const dataPoints = thresholds.map((threshold, index) => ({
+      x: threshold,
+      y: {
+        CAP: capValues[index],
+        COP: copValues[index],
+        design: getDesignLoadAtTemp(threshold),
+      },
+    }))
+
+    // Generate x-axis labels by selecting every 'stepSize' data point
+    const xLabels = dataPoints.filter((point, index) => index % stepSize === 0).map((point) => point.x.toString())
+
+    const intersectionPoints = dataPoints.filter((point, index) => {
+      if (index === 0) return false
+      return (
+        (point.y.CAP >= point.y.design && dataPoints[index - 1].y.CAP < dataPoints[index - 1].y.design) ||
+        (point.y.CAP <= point.y.design && dataPoints[index - 1].y.CAP > dataPoints[index - 1].y.design)
+      )
+    })
+
+    // Create an array to store the intersection point for adding dots
+    const dotData = intersectionPoints.map((point) => ({
+      x: point.x,
+      y: point.y.CAP, // Use the CAP value for the y-coordinate
+    }))
+
     return {
-      labels: rows.map((row) => String(row.max)),
+      labels: xLabels,
+      datasets: [
+        {
+          label: 'CAP',
+          data: dataPoints.map((point) => ({
+            x: point.x,
+            y: point.y.CAP,
+          })),
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+          yAxisID: 'y',
+        },
+        {
+          label: 'COP',
+          data: dataPoints.map((point) => ({
+            x: point.x,
+            y: point.y.COP,
+          })),
+          borderColor: 'rgb(53, 162, 235)',
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+          yAxisID: 'y2',
+        },
+        {
+          label: 'Design Load',
+          fill: true,
+          data: dataPoints.map((point) => ({
+            x: point.x,
+            y: point.y.design,
+          })),
+          borderColor: 'rgb(253, 262, 35)',
+          backgroundColor: 'rgba(253, 262, 35, 0.1)',
+          yAxisID: 'y1',
+        },
+        {
+          label: 'Intersection',
+          data: dotData,
+          pointRadius: 5, // Adjust the point size as needed
+          pointBackgroundColor: 'green', // Set the color of the intersection points
+          yAxisID: 'y', // Use the correct y-axis ID
+        },
+      ],
+    }
+  }
+
+
+
+
+  function getCapacityData(rows: ReturnType<typeof getRows>) {
+    const maxValues = rows.map((row) => row.max)
+
+    // Find the minimum and maximum 'max' values
+    const minMax = Math.min(...maxValues)
+    const maxMax = Math.max(...maxValues)
+
+    // Generate an array of integers from the minimum to maximum 'max' value
+    const customLabels = Array.from(
+      { length: maxMax - minMax + 1 },
+      (_, index) => String(minMax + index)
+    )
+
+    const capacityData = Array.from(
+      { length: maxMax - minMax + 1 },
+      (_, index) => heatpumps[selected].cap[index] // Use the index as x-value
+    )
+
+    return {
+      labels: customLabels,
       // labels: [22, 0, -30],
       datasets: [
         {
+          label: 'Breakeven',
+          data: [null, 0, null, null], // Vertical line at x=4 (May)
+          borderColor: 'red', // Line color
+          borderWidth: 2, // Line width
+          pointRadius: 0, // Hide data points
+          fill: false,
+          yAxisID: 'y', // Use the correct y-axis ID
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        },
+        {
           label: 'Capacity',
-          data: heatpumps[selected].cap,
+          data: capacityData,
           // data: rows.map(({ max }, i) => ({ x: max, y: cap[i] })),
           borderColor: 'rgb(255, 99, 132)',
           backgroundColor: 'rgba(255, 99, 132, 0.5)',
@@ -270,7 +388,7 @@ export default function App() {
           yAxisID: 'y',
         },
       ],
-    };
+    }
   }
 
   function getHoursInTempRange(
@@ -278,7 +396,7 @@ export default function App() {
     min: number,
     max: number
   ): HourlyWeather[] {
-    return hours.filter((hour) => hour.temp <= max && hour.temp > min);
+    return hours.filter((hour) => hour.temp <= max && hour.temp > min)
   }
 
   function getRows(
@@ -286,12 +404,12 @@ export default function App() {
     weather: HourlyWeather[],
     input?: Heatpump
   ): Row[] {
-    const heatpump = input || heatpumps[selected];
+    const heatpump = input || heatpumps[selected]
 
     return thresholds.map((val, i) => {
-      const max = val;
-      const min = thresholds[i + 1] || -100;
-      const hoursInRange = getHoursInTempRange(weather, min, max);
+      const max = val
+      const min = thresholds[i + 1] || -100
+      const hoursInRange = getHoursInTempRange(weather, min, max)
 
       const {
         resistiveKwhConsumed,
@@ -307,7 +425,7 @@ export default function App() {
             hour.temp,
             thresholds,
             heatpump
-          );
+          )
 
           const {
             resistiveHeat: hourResitiveKwh,
@@ -316,7 +434,7 @@ export default function App() {
             fossilFuelKwh: hourFossilFuelKwh,
             amountOfEnergyNeeded,
             effectiveCop,
-          } = getEnergySource(hour, hourCap, hourCop);
+          } = getEnergySource(hour, hourCap, hourCop)
 
           return {
             heatingDelta: acc.heatingDelta + (indoor - hour.temp),
@@ -327,7 +445,7 @@ export default function App() {
             amountOfEnergyNeeded:
               acc.amountOfEnergyNeeded + amountOfEnergyNeeded,
             copAverage: acc.copAverage + effectiveCop,
-          };
+          }
         },
         {
           heatingDelta: 0,
@@ -338,20 +456,20 @@ export default function App() {
           copAverage: 0,
           amountOfEnergyNeeded: 0,
         }
-      );
+      )
 
-      const hoursBelowNum = hoursInRange.length;
-      const percent = Number(hoursBelowNum / weather.length);
-      const heatingDeltaPercent = Number(heatingDelta / heatingDegrees);
-      const gas = gasUsage * (heatingDelta / heatingDegrees);
-      const costSavings = gas * costGas - heatPumpKwhConsumed * costKwh;
+      const hoursBelowNum = hoursInRange.length
+      const percent = Number(hoursBelowNum / weather.length)
+      const heatingDeltaPercent = Number(heatingDelta / heatingDegrees)
+      const gas = fuelUsage * (heatingDelta / heatingDegrees)
+      const costSavings = gas * costGas - heatPumpKwhConsumed * costKwh
 
-      let label = '';
+      let label = ''
 
       if (i === thresholds.length - 1) {
-        label = `< ${val}`;
+        label = `< ${val}`
       } else {
-        label = `${val} to ${thresholds[i + 1]}`;
+        label = `${val} to ${thresholds[i + 1]}`
       }
 
       return {
@@ -371,37 +489,38 @@ export default function App() {
         fossilFuelKwh: fossilFuelKwh,
         copAverage: copAverage / hoursInRange.length,
         amountOfEnergyNeeded,
-      };
-    });
+      }
+    })
   }
 
   function getDesignLoadAtTemp(temp: number) {
-    const designBtuPerDegree = designBtu / (indoor - designTemp);
-    const heatingDegrees = indoor - temp;
-    return heatingDegrees * designBtuPerDegree;
+    const designBtuPerDegree = designBtu / (indoor - designTemp)
+    const heatingDegrees = indoor - temp
+    return heatingDegrees * designBtuPerDegree
   }
+
   function getEnergySource(
     hour: HourlyWeather,
     btusAtTemp: number,
     copAtTemp: number
   ): {
-    resistiveHeat: number;
-    heatPump: number;
-    heatPumpDuelFuel: number;
-    fossilFuelKwh: number;
-    amountOfEnergyNeeded: number;
-    effectiveCop: number;
+    resistiveHeat: number
+    heatPump: number
+    heatPumpDuelFuel: number
+    fossilFuelKwh: number
+    amountOfEnergyNeeded: number
+    effectiveCop: number
   } {
-    const requiredBtus = getDesignLoadAtTemp(hour.temp);
-    const amountOfEnergyNeeded = requiredBtus / KWH_BTU;
-    const proportionHeatPump = Math.min(btusAtTemp / requiredBtus, 1);
+    const requiredBtus = getDesignLoadAtTemp(hour.temp)
+    const amountOfEnergyNeeded = requiredBtus / KWH_BTU
+    const proportionHeatPump = Math.min(btusAtTemp / requiredBtus, 1)
 
-    const resistiveHeat = (1 - proportionHeatPump) * amountOfEnergyNeeded;
-    const heatPump = (proportionHeatPump * amountOfEnergyNeeded) / copAtTemp;
-    const heatPumpDuelFuel = proportionHeatPump === 1 ? heatPump : 0;
-    const fossilFuelKwh = proportionHeatPump === 1 ? 0 : amountOfEnergyNeeded;
+    const resistiveHeat = (1 - proportionHeatPump) * amountOfEnergyNeeded
+    const heatPump = (proportionHeatPump * amountOfEnergyNeeded) / copAtTemp
+    const heatPumpDuelFuel = proportionHeatPump === 1 ? heatPump : 0
+    const fossilFuelKwh = proportionHeatPump === 1 ? 0 : amountOfEnergyNeeded
     const effectiveCop =
-      proportionHeatPump * copAtTemp + 1 * (1 - proportionHeatPump);
+      proportionHeatPump * copAtTemp + 1 * (1 - proportionHeatPump)
 
     return {
       resistiveHeat,
@@ -410,7 +529,28 @@ export default function App() {
       fossilFuelKwh,
       amountOfEnergyNeeded,
       effectiveCop,
-    };
+    }
+  }
+
+  function convertToKwh(fuelType: FuelType, quantity: number): number {
+    // Define conversion factors (example values)
+    const conversionFactors: Record<FuelType, number> = {
+      [FuelType.NATURAL_GAS]: 10.55, // Example conversion factor for natural gas
+      [FuelType.OIL]: 10.5,          // Example conversion factor for oil
+      [FuelType.PROPANE]: 7.08,     // Example conversion factor for propane
+    }
+
+    // Check if the fuel type is valid
+    if (!(fuelType in conversionFactors)) {
+      throw new Error('Invalid fuel type')
+    }
+
+    // Convert quantity to kWh using the conversion factor
+    const conversionFactor = conversionFactors[fuelType]
+    const kWh = quantity * conversionFactor
+
+    // Return the result
+    return kWh
   }
 
   function renderNav() {
@@ -424,7 +564,7 @@ export default function App() {
           </ul>
         </nav>
       </div>
-    );
+    )
   }
 
   function renderDataOverview() {
@@ -453,7 +593,7 @@ export default function App() {
           </i>
         </p>
       </div>
-    );
+    )
   }
 
   function renderQuestions() {
@@ -477,7 +617,7 @@ export default function App() {
           {renderExplanation()}
         </details>
       </article>
-    );
+    )
   }
 
   function renderHeatingConsumption() {
@@ -487,7 +627,9 @@ export default function App() {
         <p>
           <table>
             <tr>
-              <td>Cost of gas (per cubic meter)</td>
+              <td>
+                <div>Cost of gas (per cubic meter)</div>
+              </td>
               <td>
                 <p>
                   <input
@@ -499,12 +641,39 @@ export default function App() {
               </td>
             </tr>
             <tr>
-              <td>Gas usage (cubic meter)</td>
+              <td>
+                <div>
+                  <div>Fuel type</div>
+                  <i style={{ fontSize: 'small', color: 'gray' }}>
+                    This will be used as the baseline for how much energy your home needs for a season
+                  </i>
+                </div></td>
+              <td>
+                <p>
+                  <select
+                    value={fuelType}
+                    onChange={(e) => setFuelType(e.target.value as FuelType)}
+                  >
+                    <option value={FuelType.NATURAL_GAS}>Natural Gas</option>
+                    <option value={FuelType.OIL}>Oil</option>
+                    <option value={FuelType.PROPANE}>Propane</option>
+                  </select>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div>
+                  <div>Seasonal fuel usage ({getUnits(fuelType)})</div>
+                  <i style={{ fontSize: 'small', color: 'gray' }}>
+                    This will be used as the baseline for how much energy your home needs for a season
+                  </i>
+                </div></td>
               <td>
                 <p>
                   <input
-                    value={gasUsage}
-                    onChange={(v) => setGasUsage(Number(v.currentTarget.value))}
+                    value={fuelUsage}
+                    onChange={(v) => setFuelUsage(Number(v.currentTarget.value))}
                   />
                 </p>
               </td>
@@ -538,7 +707,7 @@ export default function App() {
           </table>
         </p>
       </div>
-    );
+    )
   }
 
   function renderDesignHeatingLoad() {
@@ -566,8 +735,10 @@ export default function App() {
                   <input
                     type="number"
                     value={designBtu}
-                    onChange={(v) =>
+                    onChange={(v) => {
+                      console.log('asdf', v.currentTarget.value)
                       setDesignBtu(Number(v.currentTarget.value))
+                    }
                     }
                   />
                 </p>
@@ -601,24 +772,24 @@ export default function App() {
           </table>
         </p>
       </div>
-    );
+    )
   }
 
   function getTotals(rows: Row[]): {
-    totalConsumed: number;
-    totalOutput: number;
-    heatpumpConsumed: number;
-    auxConsumed: number;
-    heatpumpOutput: number;
-    auxOutput: number;
-    heatPumpDuelFuelConsumed: number;
-    fossilFuelKwhTotal: number;
+    totalConsumed: number
+    totalOutput: number
+    heatpumpConsumed: number
+    auxConsumed: number
+    heatpumpOutput: number
+    auxOutput: number
+    heatPumpDuelFuelConsumed: number
+    fossilFuelKwhTotal: number
   } {
     const totalEnery = rows.reduce(
       (acc, row) => acc + row.amountOfEnergyNeeded,
       0
-    );
-    const magicNumber = kwhEquivalent / totalEnery;
+    )
+    const magicNumber = kwhEquivalent / totalEnery
     return rows.reduce(
       (acc, row) => {
         return {
@@ -637,7 +808,7 @@ export default function App() {
             acc.heatPumpDuelFuelConsumed + row.heatPumpDuelFuel * magicNumber,
           fossilFuelKwhTotal:
             acc.fossilFuelKwhTotal + row.fossilFuelKwh * magicNumber,
-        };
+        }
       },
       {
         totalConsumed: 0,
@@ -649,11 +820,11 @@ export default function App() {
         heatPumpDuelFuelConsumed: 0,
         fossilFuelKwhTotal: 0,
       }
-    );
+    )
   }
 
   function renderResults() {
-    const totals = getTotals(rows);
+    const totals = getTotals(rows)
 
     return (
       <article>
@@ -668,8 +839,8 @@ export default function App() {
 
             <tr>
               Fossil Fuel
-              <td>{gasUsage} m3</td>
-              <td>${costGas * gasUsage}</td>
+              <td>{fuelUsage} m3</td>
+              <td>${costGas * fuelUsage}</td>
             </tr>
             <tr>
               Baseboard Heat
@@ -677,8 +848,8 @@ export default function App() {
               <td> ${Math.round(kwhEquivalent * costKwh)}</td>
             </tr>
             {heatpumps.map((heatpump) => {
-              const rows = getRows(thresholds, weather, heatpump);
-              const totals = getTotals(rows);
+              const rows = getRows(thresholds, weather, heatpump)
+              const totals = getTotals(rows)
               return (
                 <tr>
                   {heatpump.name} + electric backup
@@ -688,11 +859,11 @@ export default function App() {
                   </td>
                   <td>${Math.round(totals.totalConsumed * costKwh)}</td>
                 </tr>
-              );
+              )
             })}
             {heatpumps.map((heatpump) => {
-              const rows = getRows(thresholds, weather, heatpump);
-              const totals = getTotals(rows);
+              const rows = getRows(thresholds, weather, heatpump)
+              const totals = getTotals(rows)
               return (
                 <tr>
                   {heatpump.name} + gas backup
@@ -700,17 +871,17 @@ export default function App() {
                     {Math.round(totals.heatPumpDuelFuelConsumed)}
                     kWh
                     <br />
-                    {Math.round(totals.fossilFuelKwhTotal / cmGasToKwh)} m3
+                    {Math.round(totals.fossilFuelKwhTotal / convertToKwh(fuelType, 1))} m3
                   </td>
                   <td>
                     $
                     {Math.round(
                       totals.heatPumpDuelFuelConsumed * costKwh +
-                        (totals.fossilFuelKwhTotal / cmGasToKwh) * costGas
+                      (totals.fossilFuelKwhTotal / convertToKwh(fuelType, 1)) * costGas
                     )}
                   </td>
                 </tr>
-              );
+              )
             })}
           </table>
         </figure>
@@ -741,7 +912,7 @@ export default function App() {
           COP
         </p>
       </article>
-    );
+    )
   }
 
   function renderExplanation() {
@@ -783,7 +954,7 @@ export default function App() {
           </li>
         </ol>
       </div>
-    );
+    )
   }
 
   function renderHeatPumpInputTable() {
@@ -805,7 +976,7 @@ export default function App() {
                 >
                   {heatpump.name}
                 </button>
-              );
+              )
             })}
           </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
@@ -823,8 +994,8 @@ export default function App() {
                 role="button"
                 className="outline"
                 onClick={() => {
-                  removeHeatpump(selected);
-                  selected >= heatpumps.length - 1 && setSelected(0);
+                  removeHeatpump(selected)
+                  selected >= heatpumps.length - 1 && setSelected(0)
                 }}
               >
                 - remove heatpump
@@ -833,10 +1004,10 @@ export default function App() {
           </div>
         </div>
         {heatpumps.map((heatpump, i) => {
-          return i == selected ? heatpumpTable(heatpump, i) : null;
+          return i == selected ? heatpumpTable(heatpump, i) : null
         })}
       </div>
-    );
+    )
   }
 
   function heatpumpTable(heatpump: Heatpump, i: number) {
@@ -855,7 +1026,7 @@ export default function App() {
           <input
             value={heatpump.name}
             onChange={(v) => {
-              updateHeatpump(selected, { name: v.target.value });
+              updateHeatpump(selected, { name: v.target.value })
             }}
           />
         </div>
@@ -880,9 +1051,9 @@ export default function App() {
                     type="number"
                     value={heatpumps[selected].cop[i]}
                     onChange={(v) => {
-                      let updated = { ...heatpumps[selected] };
-                      updated.cop[i] = Number(v.target.value);
-                      updateHeatpump(selected, updated);
+                      let updated = { ...heatpumps[selected] }
+                      updated.cop[i] = Number(v.target.value)
+                      updateHeatpump(selected, updated)
                     }}
                   />
                 </td>
@@ -891,18 +1062,28 @@ export default function App() {
                     type="number"
                     value={heatpumps[selected].cap[i]}
                     onChange={(v) => {
-                      let updated = { ...heatpumps[selected] };
-                      updated.cap[i] = Number(v.target.value);
-                      updateHeatpump(selected, updated);
+                      let updated = { ...heatpumps[selected] }
+                      updated.cap[i] = Number(v.target.value)
+                      updateHeatpump(selected, updated)
                     }}
                   />
                 </td>
               </tr>
-            );
+            )
           })}
         </table>
       </figure>
-    );
+    )
+  }
+
+  function getUnits(fuelType: FuelType) {
+    if (fuelType === FuelType.NATURAL_GAS) {
+      return "m3"
+    } else if (fuelType === FuelType.OIL) {
+      return "L"
+    } else if (fuelType === FuelType.PROPANE) {
+      return "L"
+    }
   }
 
   function getEfficiencyAtTemp(
@@ -910,34 +1091,34 @@ export default function App() {
     thresholds: number[],
     heatpump: Heatpump
   ) {
-    const cap = heatpump.cap;
-    const cop = heatpump.cop;
-    const temps = [...thresholds, -100];
+    const cap = heatpump.cap
+    const cop = heatpump.cop
+    const temps = [...thresholds, -100]
     const arr: { temp: number; cap: number; cop: number }[] = temps.map(
       (val, i) => ({
         temp: val,
         cap: cap[i],
         cop: cop[i],
       })
-    );
+    )
 
     const minIndex = Math.max(
       arr.findIndex((val) => val.temp < temp),
       1
-    );
+    )
 
     const capSlope =
       (cap[minIndex] - cap[minIndex - 1]) /
-      (temps[minIndex] - temps[minIndex - 1]);
+      (temps[minIndex] - temps[minIndex - 1])
     const copSlope =
       (cop[minIndex] - cop[minIndex - 1]) /
-      (temps[minIndex] - temps[minIndex - 1]);
-    const capIntercept = cap[minIndex] - capSlope * temps[minIndex];
-    const copIntercept = cop[minIndex] - copSlope * temps[minIndex];
+      (temps[minIndex] - temps[minIndex - 1])
+    const capIntercept = cap[minIndex] - capSlope * temps[minIndex]
+    const copIntercept = cop[minIndex] - copSlope * temps[minIndex]
 
     return {
       cap: capSlope * temp + capIntercept,
       cop: copSlope * temp + copIntercept,
-    };
+    }
   }
 }
