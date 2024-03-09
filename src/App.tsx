@@ -628,7 +628,7 @@ export default function App() {
           <table>
             <tr>
               <td>
-                <div>Cost of gas (per cubic meter)</div>
+                <div>Cost of gas (per "{getUnits(fuelType)}")</div>
               </td>
               <td>
                 <p>
@@ -644,9 +644,6 @@ export default function App() {
               <td>
                 <div>
                   <div>Fuel type</div>
-                  <i style={{ fontSize: 'small', color: 'gray' }}>
-                    This will be used as the baseline for how much energy your home needs for a season
-                  </i>
                 </div></td>
               <td>
                 <p>
@@ -839,7 +836,7 @@ export default function App() {
 
             <tr>
               Fossil Fuel
-              <td>{fuelUsage} m3</td>
+              <td>{fuelUsage} {getUnits(fuelType)}</td>
               <td>${costGas * fuelUsage}</td>
             </tr>
             <tr>
@@ -866,12 +863,12 @@ export default function App() {
               const totals = getTotals(rows)
               return (
                 <tr>
-                  {heatpump.name} + gas backup
+                  {heatpump.name} + fossil fuel
                   <td>
                     {Math.round(totals.heatPumpDuelFuelConsumed)}
                     kWh
                     <br />
-                    {Math.round(totals.fossilFuelKwhTotal / convertToKwh(fuelType, 1))} m3
+                    {Math.round(totals.fossilFuelKwhTotal / convertToKwh(fuelType, 1))} {getUnits(fuelType)}
                   </td>
                   <td>
                     $
