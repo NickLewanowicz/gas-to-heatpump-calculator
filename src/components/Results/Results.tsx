@@ -153,7 +153,9 @@ export const Results: React.FC<ResultsProps> = ({
             size="middle"
             style={{
                 width: '100%',
-                padding: '0 8px'
+                maxWidth: '100%',
+                padding: '0 8px',
+                overflow: 'hidden'
             }}
         >
             <Title level={4} style={{ fontSize: '1.2rem' }}>Cost Comparison</Title>

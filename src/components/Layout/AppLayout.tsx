@@ -10,6 +10,7 @@ import { AppLayoutProps } from './types'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { SidePanel } from './Panels/SidePanel'
 import { getMultipleChartData } from '../../utils/chartData'
+import { ConsumptionBreakdown } from '../ConsumptionBreakdown/ConsumptionBreakdown'
 
 const { Header, Content, Footer } = Layout
 const { Title } = Typography
@@ -54,7 +55,7 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
     const duelFuelBreakeven = costKwh / (costGas / (convertToKwh(fuelType, 1) * formState.furnaceEfficiency))
 
     return (
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout style={{ minHeight: '100vh', overflowX: 'hidden', maxWidth: '100VW' }}>
             <Header style={{
                 background: token.colorBgElevated,
                 padding: 0,
@@ -87,7 +88,7 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
                         background: token.colorBgElevated,
                         display: 'flex',
                         flexDirection: 'column',
-                        overflow: 'auto',
+                        overflowY: 'auto',
                         WebkitOverflowScrolling: 'touch'
                     }}>
                         <div style={{
@@ -100,26 +101,29 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
                             minHeight: 'min-content',
                             padding: token.padding
                         }}>
-                            <div style={{
-                                width: '100%',
-                                minWidth: 0
-                            }}>
-                                <Results
-                                    rows={rows}
-                                    kwhEquivalent={kwhEquivalent}
-                                    fuelUsage={fuelUsage}
-                                    fuelType={fuelType}
-                                    costGas={costGas}
-                                    costKwh={costKwh}
-                                    heatpumps={heatpumps}
-                                    heatingDegrees={heatingDegrees}
-                                    getRows={getRows}
-                                    thresholds={thresholds}
-                                    weather={weather}
-                                    convertToKwh={convertToKwh}
-                                />
-                            </div>
+
+                            <Results
+                                rows={rows}
+                                kwhEquivalent={kwhEquivalent}
+                                fuelUsage={fuelUsage}
+                                fuelType={fuelType}
+                                costGas={costGas}
+                                costKwh={costKwh}
+                                heatpumps={heatpumps}
+                                heatingDegrees={heatingDegrees}
+                                getRows={getRows}
+                                thresholds={thresholds}
+                                weather={weather}
+                                convertToKwh={convertToKwh}
+                            />
                             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                                <div style={{ maxWidth: '90VW' }}>
+                                    <ConsumptionBreakdown
+                                        rows={rows}
+                                        heatpumps={heatpumps}
+                                        selected={selected}
+                                    />
+                                </div>
                                 <Title level={4}>Performance Analysis</Title>
                                 <Card size="small">
                                     <div style={{
