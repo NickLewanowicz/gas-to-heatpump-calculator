@@ -1,6 +1,6 @@
 import React from 'react'
-import { Menu, Space, theme } from 'antd'
-import { QuestionCircleOutlined, SettingOutlined } from '@ant-design/icons'
+import { Space, theme } from 'antd'
+import { GithubOutlined } from '@ant-design/icons'
 import { HvacSystemIcon } from '../Icons/HvacIcons'
 
 export const Navigation = () => {
@@ -10,6 +10,7 @@ export const Navigation = () => {
         <div style={{
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             height: 48,
             padding: `0 ${token.paddingLG}px`,
         }}>
@@ -29,27 +30,19 @@ export const Navigation = () => {
                 </span>
             </Space>
 
-            {/* <Menu
-                mode="horizontal"
+            <a
+                href="https://github.com/NickLewanowicz/gas-to-heatpump-calculator"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
-                    flex: 1,
-                    justifyContent: 'flex-end',
-                    background: 'transparent',
-                    border: 'none'
+                    color: token.colorText,
+                    fontSize: 20,
+                    display: 'flex',
+                    alignItems: 'center'
                 }}
-                items={[
-                    {
-                        key: 'help',
-                        icon: <QuestionCircleOutlined />,
-                        label: 'Help'
-                    },
-                    {
-                        key: 'settings',
-                        icon: <SettingOutlined />,
-                        label: 'Settings'
-                    }
-                ]}
-            /> */}
+            >
+                <GithubOutlined />
+            </a>
         </div>
     )
 }
