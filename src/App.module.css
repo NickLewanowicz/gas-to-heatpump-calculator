@@ -1,0 +1,116 @@
+.appContainer {
+  min-height: 100vh;
+}
+
+.header {
+  padding: 0;
+  background: #141414;
+  border-bottom: 1px solid #303030;
+}
+
+.mainLayout {
+  height: calc(100vh - 64px);
+}
+
+.sider {
+  background: #1f1f1f;
+  position: relative;
+  border-right: 1px solid #303030;
+}
+
+.siderContent {
+  height: 100%;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.contentLayout {
+  background: #141414;
+  display: flex;
+  flex-direction: column;
+}
+
+.mainContent {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chartContainer {
+  flex: 1;
+  background: #1f1f1f;
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 0;
+}
+
+.bottomPanel {
+  background: #1f1f1f;
+  position: relative;
+  transition: height 0.3s;
+  border-top: 1px solid #303030;
+}
+
+.bottomContent {
+  padding: 16px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.toggleButton {
+  position: absolute;
+  top: 16px;
+  z-index: 1;
+  background: #1f1f1f;
+  border: 1px solid #303030;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggleButtonBottom {
+  composes: toggleButton;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Left sider toggle button */
+.sider:first-child .toggleButton {
+  right: -32px;
+}
+
+/* Right sider toggle button */
+.sider:last-child .toggleButton {
+  left: -32px;
+}
+
+@media (max-width: 768px) {
+  .mainLayout {
+    flex-direction: column;
+  }
+
+  .sider {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 414px) {
+  .mainContent {
+    padding: 8px;
+  }
+
+  .chartContainer {
+    padding: 8px;
+  }
+
+  .bottomContent {
+    padding: 8px;
+  }
+}

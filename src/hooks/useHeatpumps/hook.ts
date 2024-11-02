@@ -1,47 +1,37 @@
-import { Dispatch, SetStateAction, useState } from 'react';
+import { useState } from 'react'
+import { Heatpump, HeatpumpsHook } from '../../types'
 
-interface Heatpump {
-  name: string;
-  cap: number[];
-  cop: number[];
+const initialHeatpump: Heatpump = {
+  name: 'Heatpump #1',
+  cap: [35000, 35000, 24000, 28000, 16000, 0],
+  cop: [3.5, 3, 2, 1.8, 1.2, 1],
 }
 
-interface HeatpumpsHook {
-  heatpumps: Heatpump[];
-  addHeatpump: (newHeatpump: Heatpump) => void;
-  removeHeatpump: (index: number) => void;
-  updateHeatpump: (index: number, updatedHeatpump: Partial<Heatpump>) => void;
-  selected: number;
-  setSelected: Dispatch<SetStateAction<number>>;
-}
+export function useHeatpumps(initialHeatpumps: Heatpump[] = [initialHeatpump]): HeatpumpsHook {
+  const [heatpumps, setHeatpumps] = useState<Heatpump[]>(initialHeatpumps)
+  const [selected, setSelected] = useState(0)
 
-export function useHeatpumps(initialHeatpumps: Heatpump[]): HeatpumpsHook {
-  const [heatpumps, setHeatpumps] = useState<Heatpump[]>(initialHeatpumps);
-  const [selected, setSelected] = useState(0);
-
-  // Add a new heat pump
   const addHeatpump = (newHeatpump: Heatpump) => {
-    setHeatpumps([...heatpumps, newHeatpump]);
-  };
+    setHeatpumps((prev) => [...prev, newHeatpump])
+  }
 
-  // Remove a heat pump by index
   const removeHeatpump = (index: number) => {
-    const updatedHeatpumps = [...heatpumps];
-    updatedHeatpumps.splice(index, 1);
-    setHeatpumps(updatedHeatpumps);
-  };
+    setHeatpumps((prev) => {
+      const newHeatpumps = prev.filter((_, i) => i !== index)
+      if (selected >= newHeatpumps.length) {
+        setSelected(newHeatpumps.length - 1)
+      }
+      return newHeatpumps
+    })
+  }
 
-  // Update a heat pump by index
-  const updateHeatpump = (
-    index: number,
-    updatedHeatpump: Partial<Heatpump>
-  ) => {
-    setHeatpumps(
-      heatpumps.map((heatpump, i) =>
-        index === i ? { ...heatpump, ...updatedHeatpump } : heatpump
+  const updateHeatpump = (index: number, updatedHeatpump: Partial<Heatpump>) => {
+    setHeatpumps((prev) =>
+      prev.map((heatpump, i) =>
+        i === index ? { ...heatpump, ...updatedHeatpump } : heatpump
       )
-    );
-  };
+    )
+  }
 
   return {
     heatpumps,
@@ -50,5 +40,5 @@ export function useHeatpumps(initialHeatpumps: Heatpump[]): HeatpumpsHook {
     updateHeatpump,
     selected,
     setSelected,
-  };
+  }
 }

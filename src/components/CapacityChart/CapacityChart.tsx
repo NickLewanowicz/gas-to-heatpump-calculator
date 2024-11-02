@@ -1,91 +1,200 @@
-import React from 'react'
-import 'chartjs-plugin-annotation'
+import React, { useState } from 'react'
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  Filler,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
-  Legend,
-} from 'chart.js'
-import { Line } from 'react-chartjs-2'
+  ReferenceLine,
+  Dot,
+  Area
+} from 'recharts'
+import { Typography, Space, Select } from 'antd'
+import { CapacityChartProps, ChartDataPoint } from '../../types'
 
+const { Title } = Typography
 
-// Register the annotation plugin
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-)
-
-export interface Props {
-  data?: {
-    labels: string[]
-    datasets: ({
-      label: string
-      data: any
-      borderColor: string
-      backgroundColor: string
-      yAxisID: string
-    } | any)[]
-  }
-  duelFuelBreakeven: number
+interface CustomDotProps {
+  cx?: number
+  cy?: number
+  payload?: ChartDataPoint
+  value?: number
+  index?: number
 }
 
-export function CapacityChart({ data: dataOverride, duelFuelBreakeven }: Props) {
-
-  const options = {
-    responsive: true,
-    interaction: {
-      mode: 'index' as const,
-      intersect: false,
-    },
-    stacked: false,
-    plugins: {
-      annotation: {
-        annotations: [
-          {
-            type: 'line' as const,
-            mode: 'vertical' as const,
-            value: 0, // Specify the x-value where you want the vertical line
-            borderColor: 'red', // Line color
-            borderWidth: 2, // Line width
-            label: {
-              content: 'Vertical Line Label', // Optional label for the line
-              enabled: true,
-            },
-          },
-        ],
-      },
-      title: {
-        display: true,
-        text: 'Heatpump Performance Chart',
-      },
-    },
-    scales: {
-      y: {
-        type: 'linear' as const,
-        display: true,
-        position: 'left' as const,
-      },
-      y1: {
-        type: 'linear' as const,
-        display: true,
-        position: 'right' as const,
-        grid: {
-          drawOnChartArea: false,
-        },
-      },
-    },
+const CustomDot: React.FC<CustomDotProps> = (props) => {
+  const { cx, cy, payload } = props
+  if (payload?.isIntersection && cx && cy) {
+    return <Dot cx={cx} cy={cy} r={6} fill="green" />
   }
+  return null
+}
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        backgroundColor: 'white',
+        padding: '8px',
+        border: '1px solid #ccc',
+        borderRadius: '4px'
+      }}>
+        <p style={{ margin: 0 }}>{`Temperature: ${label}°C`}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} style={{ margin: 0, color: entry.color }}>
+            {entry.name.includes('COP') &&
+              `${entry.name}: ${entry.value.toFixed(2)} (efficiency ratio)`}
+            {entry.name.includes('BTU/h') &&
+              `${entry.name}: ${entry.value.toLocaleString()} BTU/h`}
+            {entry.name === 'Design Load' &&
+              `Required: ${entry.value.toLocaleString()} BTU/h`}
+          </p>
+        ))}
+      </div>
+    )
+  }
+  return null
+}
 
-  return <>{duelFuelBreakeven}<Line options={options} data={dataOverride} /></>
+const LineToggles = ({
+  heatpumps,
+  selectedHeatpumps,
+  onSelectionChange,
+}: {
+  heatpumps: any[],
+  selectedHeatpumps: number[],
+  onSelectionChange: (selected: number[]) => void,
+}) => {
+  return (
+    <Space wrap style={{ marginBottom: 16 }}>
+      <Select
+        mode="multiple"
+        style={{ minWidth: 200 }}
+        placeholder="Select heat pumps to display"
+        value={selectedHeatpumps}
+        onChange={onSelectionChange}
+        options={heatpumps.map((heatpump, index) => ({
+          label: heatpump.name,
+          value: index,
+        }))}
+      />
+    </Space>
+  )
+}
+
+export const CapacityChart: React.FC<CapacityChartProps> = ({
+  data,
+  duelFuelBreakeven,
+  heatpumps = [],
+  selected = 0
+}) => {
+  const [selectedHeatpumps, setSelectedHeatpumps] = useState<number[]>([selected])
+  const colors = ['#1890ff', '#ff4d4f', '#ffd700', '#52c41a', '#722ed1', '#fa8c16']
+
+  return (
+    <div style={{ width: '100%', height: '100%' }}>
+      <Title level={5} style={{ margin: '0 0 16px 0' }}>Heat Pump Performance Analysis</Title>
+
+      <LineToggles
+        heatpumps={heatpumps}
+        selectedHeatpumps={selectedHeatpumps}
+        onSelectionChange={setSelectedHeatpumps}
+      />
+
+      <ResponsiveContainer width="100%" height={400}>
+        <LineChart
+          data={data}
+          margin={{
+            top: 10,
+            right: 10,
+            left: -20,
+            bottom: 25
+          }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey="temperature"
+            label={{
+              value: 'Outdoor Temperature (°C)',
+              position: 'bottom',
+              offset: 10
+            }}
+            tick={{ dy: 10 }}
+          />
+          <YAxis
+            yAxisId="left"
+            label={{
+              value: 'Coefficient of Performance (COP)',
+              angle: -90,
+              position: 'insideLeft',
+              offset: -50,
+              style: { textAnchor: 'middle' }
+            }}
+          />
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            label={{
+              value: 'Heating Capacity (BTU/h)',
+              angle: 90,
+              position: 'insideRight',
+              offset: -40,
+              style: { textAnchor: 'middle' }
+            }}
+          />
+          <Tooltip content={<CustomTooltip />} />
+
+          {selectedHeatpumps.map((heatpumpIndex) => (
+            <React.Fragment key={`heatpump-${heatpumpIndex}`}>
+              <Area
+                yAxisId="right"
+                dataKey={`heatpump-${heatpumpIndex}-aux`}
+                fill={`${colors[heatpumpIndex % colors.length]}20`}
+                stroke="none"
+                name={`${heatpumps[heatpumpIndex].name} Aux Heat`}
+              />
+              <Line
+                type="monotone"
+                dataKey={`heatpump-${heatpumpIndex}-cap`}
+                stroke={colors[heatpumpIndex % colors.length]}
+                yAxisId="right"
+                name={`${heatpumps[heatpumpIndex].name} BTU/h`}
+                dot={<CustomDot />}
+              />
+              <Line
+                type="monotone"
+                dataKey={`heatpump-${heatpumpIndex}-cop`}
+                stroke={colors[heatpumpIndex % colors.length]}
+                yAxisId="left"
+                name={`${heatpumps[heatpumpIndex].name} COP`}
+                strokeDasharray="5 5"
+              />
+            </React.Fragment>
+          ))}
+          <Line
+            type="monotone"
+            dataKey="design"
+            stroke="#ffd700"
+            yAxisId="right"
+            name="Design Load"
+          />
+          {duelFuelBreakeven && (
+            <ReferenceLine
+              yAxisId="right"
+              x={duelFuelBreakeven}
+              stroke="rgba(255, 99, 132, 0.5)"
+              strokeDasharray="3 3"
+              label={{
+                value: "Dual Fuel Breakeven",
+                position: "top",
+                fill: "rgba(255, 99, 132, 0.8)"
+              }}
+            />
+          )}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  )
 }

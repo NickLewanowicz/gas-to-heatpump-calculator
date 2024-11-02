@@ -3,13 +3,14 @@
     "module": "ESNext",
     "jsx": "react",
     "resolveJsonModule": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": "./src",
     "paths": {
       "@components/*": ["components/*"]
-    }
+    },
+    "plugins": [{ "name": "typescript-plugin-css-modules" }]
   },
-  "include": ["src", "**/*.pdf"]
+  "include": ["src/**/*", "src/types/css-modules.d.ts"]
 }

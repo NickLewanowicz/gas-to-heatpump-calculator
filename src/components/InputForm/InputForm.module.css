@@ -1,0 +1,24 @@
+.formContainer {
+    height: 100%;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.formContainer :global(.ant-card) {
+    background: #242424;
+    border: none;
+    margin-bottom: 16px;
+}
+
+.formContainer :global(.ant-card-head) {
+    border-bottom: 1px solid #333;
+}
+
+.formContainer :global(.ant-form-item) {
+    margin-bottom: 12px;
+}
+
+.formContainer :global(.ant-input-number),
+.formContainer :global(.ant-select) {
+    width: 100%;
+}
