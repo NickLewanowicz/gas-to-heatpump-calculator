@@ -1,0 +1,18 @@
+.resultsContainer {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+@media (max-width: 576px) {
+    .resultsContainer :global(.ant-space) {
+        gap: 8px !important;
+    }
+    
+    .resultsContainer :global(.ant-card) {
+        border-radius: 8px;
+    }
+    
+    .resultsContainer :global(.ant-statistic) {
+        margin-right: 8px;
+    }
+}
