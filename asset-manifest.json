@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/gas-to-heatpump-calculator/static/css/main.f74b42c1.css",
-    "main.js": "/gas-to-heatpump-calculator/static/js/main.7a066ee8.js",
+    "main.js": "/gas-to-heatpump-calculator/static/js/main.feaa17ab.js",
     "index.html": "/gas-to-heatpump-calculator/index.html",
     "main.f74b42c1.css.map": "/gas-to-heatpump-calculator/static/css/main.f74b42c1.css.map",
-    "main.7a066ee8.js.map": "/gas-to-heatpump-calculator/static/js/main.7a066ee8.js.map"
+    "main.feaa17ab.js.map": "/gas-to-heatpump-calculator/static/js/main.feaa17ab.js.map"
   },
   "entrypoints": [
     "static/css/main.f74b42c1.css",
-    "static/js/main.7a066ee8.js"
+    "static/js/main.feaa17ab.js"
   ]
 }
