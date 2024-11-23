@@ -1,4 +1,5 @@
 import { useState, Dispatch, SetStateAction } from 'react'
+import { SeasonView } from 'types'
 
 interface FormState {
   indoor: number
@@ -23,6 +24,10 @@ interface FormState {
   setFuelUsage: Dispatch<SetStateAction<number>>
   fuelType: FuelType
   setFuelType: Dispatch<SetStateAction<FuelType>>
+  year: number
+  setYear: Dispatch<SetStateAction<number>>
+  seasonView: SeasonView
+  setSeasonView: Dispatch<SetStateAction<SeasonView>>
 }
 
 export enum FuelType {
@@ -44,6 +49,8 @@ export function useFormState(): FormState {
   const [costKwh, setCostKwh] = useState(0.1)
   const [selected, setSelected] = useState(0)
   const [fuelUsage, setFuelUsage] = useState(1300)
+  const [year, setYear] = useState(2022)
+  const [seasonView, setSeasonView] = useState<SeasonView>('heating')
 
   return {
     indoor,
@@ -67,6 +74,10 @@ export function useFormState(): FormState {
     fuelType,
     setFuelType,
     fuelUsage,
-    setFuelUsage
+    setFuelUsage,
+    year,
+    setYear,
+    seasonView,
+    setSeasonView
   }
 }

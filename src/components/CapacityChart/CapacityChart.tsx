@@ -88,10 +88,35 @@ export const CapacityChart: React.FC<CapacityChartProps> = ({
   data,
   duelFuelBreakeven,
   heatpumps = [],
-  selected = 0
+  selected = 0,
+  weather
 }) => {
   const [selectedHeatpumps, setSelectedHeatpumps] = useState<number[]>([selected])
   const colors = ['#1890ff', '#ff4d4f', '#ffd700', '#52c41a', '#722ed1', '#fa8c16']
+
+  // Get the temperature range from the data points
+  const minTemp = Math.min(...data.map(d => d.temperature))
+  const maxTemp = Math.max(...data.map(d => d.temperature))
+
+  // Create an array of all temperatures in the range
+  const temperatureRange = Array.from(
+    { length: maxTemp - minTemp + 1 },
+    (_, i) => minTemp + i
+  )
+
+  // Group weather data by each integer temperature in the range
+  const temperatureFrequency = temperatureRange.map(temp => ({
+    temperature: temp,
+    hours: weather.filter(hour =>
+      Math.round(hour.temp) === temp
+    ).length,
+    // Include any matching data point information
+    ...data.find(d => Math.round(d.temperature) === temp) || {}
+  }))
+
+  console.log('Weather:', weather.length)
+
+  console.log('Temperature frequency:', temperatureFrequency) // For debugging
 
   return (
     <div style={{ width: '100%', height: '100%' }}>

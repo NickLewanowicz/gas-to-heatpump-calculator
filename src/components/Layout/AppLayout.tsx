@@ -32,6 +32,7 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
         designTemp,
         designBtu,
         weather,
+        filteredWeather,
         thresholds,
         kwhEquivalent,
         fuelUsage,
@@ -74,6 +75,7 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
                     <InputForm
                         formState={formState}
                         cities={cities}
+                        weather={weather}
                     />
                 </SidePanel>
 
@@ -113,7 +115,7 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
                                 heatingDegrees={heatingDegrees}
                                 getRows={getRows}
                                 thresholds={thresholds}
-                                weather={weather}
+                                weather={filteredWeather}
                                 convertToKwh={convertToKwh}
                             />
                             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
@@ -135,6 +137,7 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
                                             duelFuelBreakeven={duelFuelBreakeven}
                                             heatpumps={heatpumps}
                                             selected={selected}
+                                            weather={filteredWeather}
                                         />
                                     </div>
                                 </Card>

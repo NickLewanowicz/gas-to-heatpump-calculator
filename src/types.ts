@@ -1,6 +1,5 @@
 import { FuelType } from './hooks'
 
-export { FuelType } from './hooks'
 export interface HourlyWeather {
     datetime: Date
     temp: number
@@ -69,6 +68,10 @@ export interface FormState {
     setFuelType: (value: FuelType) => void
     fuelUsage: number
     setFuelUsage: (value: number) => void
+    year: number
+    setYear: (year: number) => void
+    seasonView: SeasonView
+    setSeasonView: (view: SeasonView) => void
 }
 
 export interface HeatpumpsHook {
@@ -94,6 +97,7 @@ export interface CapacityChartProps {
     duelFuelBreakeven: number
     heatpumps?: Heatpump[]
     selected?: number
+    weather: HourlyWeather[]
 }
 
 export type Cities = string
@@ -112,6 +116,7 @@ export interface ResultsTotals {
 export interface InputFormProps {
     formState: FormState
     cities: string[]
+    weather: HourlyWeather[]
 }
 
 export interface ResultsProps {
@@ -128,3 +133,19 @@ export interface ResultsProps {
     weather: HourlyWeather[]
     convertToKwh: (fuelType: FuelType, amount: number) => number
 }
+
+export type FuelUnit = 'm³' | 'L' | 'kWh'
+
+export const fuelUnits: Record<FuelType, FuelUnit> = {
+    'Natural Gas': 'm³',
+    'Oil': 'L',
+    'Propane': 'L',
+    'Electric': 'kWh'
+}
+
+export interface YearRange {
+    startYear: number
+    endYear: number
+}
+
+export type SeasonView = 'calendar' | 'heating'

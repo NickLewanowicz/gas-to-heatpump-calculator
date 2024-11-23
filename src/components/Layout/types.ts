@@ -1,4 +1,5 @@
-import { FormState, Row, Heatpump, HourlyWeather, FuelType } from '../../types'
+import { FormState, Row, Heatpump, HourlyWeather } from '../../types'
+import { FuelType } from '../../hooks/useFormState/hook'
 
 export interface AppLayoutProps {
     formState: FormState
@@ -14,6 +15,7 @@ export interface AppLayoutProps {
     designTemp: number
     designBtu: number
     weather: HourlyWeather[]
+    filteredWeather: HourlyWeather[]
     thresholds: number[]
     kwhEquivalent: number
     fuelUsage: number

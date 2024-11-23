@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { WeatherData, Row, Heatpump } from './types'
-import weatherData from './data'
+import { Row, Heatpump } from './types'
+import { CityName } from './data/weather'
+import { cities } from './data/weather'
 import { useFormState } from './hooks'
 import { useHeatpumps } from './hooks/useHeatpumps/hook'
 import { useWeatherData } from './hooks/useWeatherData/hook'
@@ -16,8 +17,6 @@ const initialHeatpump: Heatpump = {
 }
 
 export default function App() {
-  const allWeather = weatherData as WeatherData
-  const cities = Object.keys(allWeather).sort()
   const [searchParams, setSearchParams] = useSearchParams()
   const [init, setInit] = useState(false)
   const [rows, setRows] = useState<Row[]>([])
@@ -41,9 +40,11 @@ export default function App() {
     costKwh,
     fuelType,
     fuelUsage,
+    seasonView,
+    year
   } = formState
 
-  const weather = useWeatherData(city)
+  const { weather, filteredWeather, loading, error } = useWeatherData(city as CityName, seasonView, year)
   const thresholds = [indoor, 8.33, -8.33, -15, -30]
   const kwhEquivalent = convertToKwh(fuelType, fuelUsage) * furnaceEfficiency
   const heatingDegrees = weather.reduce((acc, hour) => acc + (indoor - hour.temp), 0)
@@ -68,13 +69,13 @@ export default function App() {
   }, [heatpumps, init])
 
   useEffect(() => {
-    setRows(getRows(thresholds, weather, heatpumps[selected], indoor, designTemp, designBtu))
-  }, [heatpumps, indoor, designBtu, weather, selected, designTemp])
+    setRows(getRows(thresholds, filteredWeather, heatpumps[selected], indoor, designTemp, designBtu))
+  }, [heatpumps, indoor, designBtu, filteredWeather, selected, designTemp])
 
   return (
     <AppLayout
       formState={formState}
-      cities={cities}
+      cities={[...cities]}
       heatpumps={heatpumps}
       selected={selected}
       setSelected={setSelected}
@@ -86,6 +87,7 @@ export default function App() {
       designTemp={designTemp}
       designBtu={designBtu}
       weather={weather}
+      filteredWeather={filteredWeather}
       thresholds={thresholds}
       kwhEquivalent={kwhEquivalent}
       fuelUsage={fuelUsage}
@@ -93,8 +95,8 @@ export default function App() {
       costGas={costGas}
       costKwh={costKwh}
       heatingDegrees={heatingDegrees}
-      getRows={(thresholds, weather, heatpump) =>
-        getRows(thresholds, weather, heatpump, indoor, designTemp, designBtu)}
+      getRows={(thresholds, filteredWeather, heatpump) =>
+        getRows(thresholds, filteredWeather, heatpump, indoor, designTemp, designBtu)}
       convertToKwh={convertToKwh}
     />
   )

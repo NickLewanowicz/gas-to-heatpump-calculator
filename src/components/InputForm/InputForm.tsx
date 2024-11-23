@@ -1,14 +1,14 @@
 import React from 'react'
-import { Form, Input, Select, Collapse, InputNumber, Typography, theme } from 'antd'
+import { Form, Input, Select, Collapse, InputNumber, Typography, theme, Radio, Space } from 'antd'
 import { InfoCircleOutlined } from '@ant-design/icons'
 import { FuelType } from '../../hooks'
-import { InputFormProps } from '../../types'
+import { HourlyWeather, InputFormProps, SeasonView } from '../../types'
 import styles from './InputForm.module.css'
 
 const { Panel } = Collapse
 const { Title } = Typography
 
-export const InputForm: React.FC<InputFormProps> = ({ formState, cities }) => {
+export const InputForm: React.FC<InputFormProps> = ({ formState, cities, weather }) => {
     const { token } = theme.useToken()
 
     const {
@@ -20,7 +20,9 @@ export const InputForm: React.FC<InputFormProps> = ({ formState, cities }) => {
         costGas, setCostGas,
         costKwh, setCostKwh,
         fuelType, setFuelType,
-        fuelUsage, setFuelUsage
+        fuelUsage, setFuelUsage,
+        year, setYear,
+        seasonView, setSeasonView
     } = formState
 
     const getUnits = (fuelType: FuelType) => {
@@ -38,6 +40,36 @@ export const InputForm: React.FC<InputFormProps> = ({ formState, cities }) => {
         { label: 'Propane (L)', value: 'Propane' },
         { label: 'Electric (kWh)', value: 'Electric' }
     ]
+
+    interface YearOption {
+        value: number
+        label: string
+        startDate: Date
+        endDate: Date
+    }
+
+    const getAvailableYears = (weather: HourlyWeather[], view: SeasonView): YearOption[] => {
+        if (!weather.length) return []
+
+        const years = new Set(
+            weather.map(entry => new Date(entry.datetime).getFullYear())
+        )
+
+        return Array.from(years).map(year => ({
+            value: year,
+            label: view === 'calendar'
+                ? year.toString()
+                : `${year}-${year + 1} Heating Season`,
+            startDate: view === 'calendar'
+                ? new Date(`${year}-01-01`)
+                : new Date(`${year}-09-01`),
+            endDate: view === 'calendar'
+                ? new Date(`${year}-12-31`)
+                : new Date(`${year + 1}-08-31`)
+        })).sort((a, b) => b.value - a.value)
+    }
+
+    const availableYears = getAvailableYears(weather, seasonView)
 
     return (
         <Collapse defaultActiveKey={['1', '2']} ghost className={styles.collapse}>
@@ -144,6 +176,27 @@ export const InputForm: React.FC<InputFormProps> = ({ formState, cities }) => {
                             onChange={value => setCity(value)}
                             options={cities.map(city => ({ value: city, label: city }))}
                         />
+                    </Form.Item>
+
+                    <Form.Item label="Time Period">
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                            <Radio.Group
+                                value={seasonView}
+                                onChange={e => setSeasonView(e.target.value)}
+                                optionType="button"
+                                buttonStyle="solid"
+                            >
+                                <Radio.Button value="heating">Heating Season</Radio.Button>
+                                <Radio.Button value="calendar">Calendar Year</Radio.Button>
+                            </Radio.Group>
+
+                            <Select
+                                value={year}
+                                onChange={value => setYear(value)}
+                                options={availableYears}
+                                style={{ width: '100%' }}
+                            />
+                        </Space>
                     </Form.Item>
 
                     <Form.Item label="Design BTU">
