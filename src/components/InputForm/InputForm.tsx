@@ -28,8 +28,16 @@ export const InputForm: React.FC<InputFormProps> = ({ formState, cities }) => {
             case FuelType.NATURAL_GAS: return "m³"
             case FuelType.OIL:
             case FuelType.PROPANE: return "L"
+            case FuelType.ELECTRIC: return "kWh"
         }
     }
+
+    const fuelTypeOptions = [
+        { label: 'Natural Gas (m³)', value: 'Natural Gas' },
+        { label: 'Oil (L)', value: 'Oil' },
+        { label: 'Propane (L)', value: 'Propane' },
+        { label: 'Electric (kWh)', value: 'Electric' }
+    ]
 
     return (
         <Collapse defaultActiveKey={['1', '2']} ghost className={styles.collapse}>
@@ -48,30 +56,37 @@ export const InputForm: React.FC<InputFormProps> = ({ formState, cities }) => {
                 key="1"
             >
                 <Form layout="vertical" size="small">
+                    <Form.Item label="Fuel type">
+                        <Select
+                            value={fuelType}
+                            onChange={value => {
+                                setFuelType(value)
+                                if (value === 'Electric') {
+                                    setCostKwh(costGas)  // Set kWh cost to match the electric rate
+                                    setCostGas(costGas)  // Keep them in sync
+                                }
+                            }}
+                            options={fuelTypeOptions}
+                        />
+                    </Form.Item>
+
                     <Form.Item
-                        label={`Cost of ${fuelType} (per ${getUnits(fuelType)})`}
-                        tooltip={{ title: "Enter the cost per unit of your fuel type", icon: <InfoCircleOutlined /> }}
+                        label={fuelType === 'Electric' ? 'Cost per kWh' : `Cost of ${fuelType} (per ${getUnits(fuelType)})`}
+                        tooltip={{ title: fuelType === 'Electric' ? "Enter your electricity rate" : "Enter the cost per unit of your fuel type", icon: <InfoCircleOutlined /> }}
                     >
                         <InputNumber
                             value={costGas}
-                            onChange={(value) => setCostGas(value || 0)}
+                            onChange={(value) => {
+                                setCostGas(value || 0)
+                                if (fuelType === 'Electric') {
+                                    setCostKwh(value || 0)  // Keep electric rates in sync
+                                }
+                            }}
                             style={{ width: '100%' }}
                         />
                     </Form.Item>
 
-                    <Form.Item label="Fuel type">
-                        <Select
-                            value={fuelType}
-                            onChange={value => setFuelType(value)}
-                            options={[
-                                { value: FuelType.NATURAL_GAS, label: 'Natural Gas' },
-                                { value: FuelType.OIL, label: 'Oil' },
-                                { value: FuelType.PROPANE, label: 'Propane' }
-                            ]}
-                        />
-                    </Form.Item>
-
-                    <Form.Item label="Seasonal fuel usage">
+                    <Form.Item label={`Seasonal ${fuelType.toLowerCase()} usage (${getUnits(fuelType)})`}>
                         <InputNumber
                             value={fuelUsage}
                             onChange={(value) => setFuelUsage(value || 0)}
@@ -79,21 +94,32 @@ export const InputForm: React.FC<InputFormProps> = ({ formState, cities }) => {
                         />
                     </Form.Item>
 
-                    <Form.Item label="Furnace efficiency">
+                    <Form.Item
+                        label="Furnace Efficiency"
+                        name="furnaceEfficiency"
+                        tooltip="The efficiency of your current heating system"
+                        style={{ display: fuelType === 'Electric' ? 'none' : 'block' }}
+                    >
                         <InputNumber
+                            min={0.5}
+                            max={1}
+                            step={0.01}
+                            style={{ width: '100%' }}
+                            disabled={fuelType === 'Electric'}
                             value={furnaceEfficiency}
                             onChange={(value) => setFurnaceEfficiency(value || 0)}
-                            style={{ width: '100%' }}
                         />
                     </Form.Item>
 
-                    <Form.Item label="Cost per kWh">
-                        <InputNumber
-                            value={costKwh}
-                            onChange={(value) => setCostKwh(value || 0)}
-                            style={{ width: '100%' }}
-                        />
-                    </Form.Item>
+                    {fuelType !== 'Electric' && (
+                        <Form.Item label="Cost per kWh">
+                            <InputNumber
+                                value={costKwh}
+                                onChange={(value) => setCostKwh(value || 0)}
+                                style={{ width: '100%' }}
+                            />
+                        </Form.Item>
+                    )}
                 </Form>
             </Panel>
 

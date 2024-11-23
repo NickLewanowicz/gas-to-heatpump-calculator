@@ -76,19 +76,19 @@ export function getEnergySource(
     }
 }
 
-export function convertToKwh(fuelType: FuelType, quantity: number): number {
-    const conversionFactors: Record<FuelType, number> = {
-        [FuelType.NATURAL_GAS]: 10.55,
-        [FuelType.OIL]: 10.5,
-        [FuelType.PROPANE]: 7.08,
+export function convertToKwh(fuelType: FuelType, amount: number): number {
+    switch (fuelType) {
+        case 'Natural Gas':
+            return amount * 10.33 // m³ to kWh
+        case 'Oil':
+            return amount * 10.68 // L to kWh
+        case 'Propane':
+            return amount * 7.12 // L to kWh
+        case 'Electric':
+            return amount // Already in kWh
+        default:
+            return 0
     }
-
-    if (!(fuelType in conversionFactors)) {
-        throw new Error('Invalid fuel type')
-    }
-
-    const conversionFactor = conversionFactors[fuelType]
-    return quantity * conversionFactor
 }
 
 export function getHoursInTempRange(

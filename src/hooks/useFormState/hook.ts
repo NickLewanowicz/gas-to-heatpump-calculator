@@ -29,6 +29,7 @@ export enum FuelType {
   NATURAL_GAS = "Natural Gas",
   OIL = "Oil",
   PROPANE = "Propane",
+  ELECTRIC = "Electric"
 }
 
 export function useFormState(): FormState {

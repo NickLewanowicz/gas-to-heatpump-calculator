@@ -160,25 +160,6 @@ export const Results: React.FC<ResultsProps> = ({
         >
             <Title level={4} style={{ fontSize: '1.2rem' }}>Cost Comparison</Title>
 
-            {baseOptions.map((option, index) => (
-                <Card size="small" key={index}>
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                        <Space>
-                            {option.title === 'Fossil Fuel' ? (
-                                <FireFilled style={{ color: token.colorTextSecondary }} />
-                            ) : (
-                                <ThunderboltFilled style={{ color: token.colorTextSecondary }} />
-                            )}
-                            <Text strong>{option.title}</Text>
-                        </Space>
-                        <Space split={<Divider type="vertical" />}>
-                            <Text type="secondary">{option.consumption}</Text>
-                            <Statistic value={option.cost} prefix="$" valueStyle={{ fontSize: '14px' }} />
-                        </Space>
-                    </Space>
-                </Card>
-            ))}
-
             {heatpumpOptions.map((option, index) => (
                 <Card size="small" key={index}>
                     <Space direction="vertical" style={{ width: '100%' }} size="middle">
@@ -220,35 +201,37 @@ export const Results: React.FC<ResultsProps> = ({
                             </Space>
                         </Space>
 
-                        {/* Fossil fuel backup option */}
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                            <Tooltip title={`System uses ${fuelType.toLowerCase()} when supplemental heat is needed`}>
-                                <Space>
-                                    <FireFilled style={{ color: token.colorTextSecondary }} />
-                                    <Text>{fuelType} backup</Text>
-                                    <Statistic value={option.fossilOption.cost} prefix="$" valueStyle={{ fontSize: '14px' }} />
-                                </Space>
-                            </Tooltip>
-
-                            <Space size="large" style={{ paddingLeft: token.paddingLG }}>
-                                <Tooltip title="Energy consumed by heat pump">
-                                    <Space size="small">
-                                        <ApiOutlined style={{ color: token.colorTextSecondary }} />
-                                        <Text type="secondary">
-                                            {option.fossilOption.consumption.split('+')[0].trim()}
-                                        </Text>
-                                    </Space>
-                                </Tooltip>
-                                <Tooltip title="Auxiliary energy consumption">
-                                    <Space size="small">
+                        {/* Fossil fuel backup option - only show if not electric */}
+                        {fuelType !== 'Electric' && (
+                            <Space direction="vertical" style={{ width: '100%' }}>
+                                <Tooltip title={`System uses ${fuelType.toLowerCase()} when supplemental heat is needed`}>
+                                    <Space>
                                         <FireFilled style={{ color: token.colorTextSecondary }} />
-                                        <Text type="secondary">
-                                            {option.fossilOption.consumption.split('+')[1].trim()}
-                                        </Text>
+                                        <Text>{fuelType} backup</Text>
+                                        <Statistic value={option.fossilOption.cost} prefix="$" valueStyle={{ fontSize: '14px' }} />
                                     </Space>
                                 </Tooltip>
+
+                                <Space size="large" style={{ paddingLeft: token.paddingLG }}>
+                                    <Tooltip title="Energy consumed by heat pump">
+                                        <Space size="small">
+                                            <ApiOutlined style={{ color: token.colorTextSecondary }} />
+                                            <Text type="secondary">
+                                                {option.fossilOption.consumption.split('+')[0].trim()}
+                                            </Text>
+                                        </Space>
+                                    </Tooltip>
+                                    <Tooltip title="Auxiliary energy consumption">
+                                        <Space size="small">
+                                            <FireFilled style={{ color: token.colorTextSecondary }} />
+                                            <Text type="secondary">
+                                                {option.fossilOption.consumption.split('+')[1].trim()}
+                                            </Text>
+                                        </Space>
+                                    </Tooltip>
+                                </Space>
                             </Space>
-                        </Space>
+                        )}
                     </Space>
                 </Card>
             ))}
