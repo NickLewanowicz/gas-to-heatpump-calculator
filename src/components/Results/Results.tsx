@@ -38,6 +38,7 @@ interface ResultsProps {
     thresholds: number[]
     weather: HourlyWeather[]
     convertToKwh: (fuelType: FuelType, quantity: number) => number
+    magicNumber: number
 }
 
 export const Results: React.FC<ResultsProps> = ({
@@ -53,6 +54,7 @@ export const Results: React.FC<ResultsProps> = ({
     thresholds,
     weather,
     convertToKwh,
+    magicNumber,
 }) => {
     const { token } = theme.useToken()
 
@@ -71,7 +73,6 @@ export const Results: React.FC<ResultsProps> = ({
             (acc, row) => acc + row.amountOfEnergyNeeded,
             0
         )
-        const magicNumber = kwhEquivalent / totalEnery
         return rows.reduce(
             (acc, row) => {
                 return {
@@ -124,6 +125,7 @@ export const Results: React.FC<ResultsProps> = ({
         const heatpumpRows = getRows(thresholds, weather, heatpump)
         const heatpumpTotals = getTotals(heatpumpRows)
 
+        console.log(heatpumpRows)
         return {
             title: heatpump.name,
             electricOption: {
@@ -132,9 +134,11 @@ export const Results: React.FC<ResultsProps> = ({
                 details: {
                     heatpumpKwh: Math.round(heatpumpTotals.heatpumpConsumed),
                     auxKwh: Math.round(heatpumpTotals.auxConsumed),
-                    avgCop: Number(rows.reduce((acc, row) =>
-                        acc + row.copAverage * (row.heatingDegrees / heatingDegrees), 0
-                    ).toFixed(2))
+                    avgCop: Number((heatpumpRows.reduce((acc, row) => {
+                        const weight = heatingDegrees > 0 ? row.heatingDegrees / heatingDegrees : 0
+                        const weightedCop = row.copAverage ? row.copAverage * weight : 0
+                        return acc + weightedCop
+                    }, 0)).toFixed(2))
                 }
             },
             fossilOption: {

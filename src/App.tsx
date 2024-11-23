@@ -47,7 +47,7 @@ export default function App() {
   const { weather, filteredWeather, loading, error } = useWeatherData(city as CityName, seasonView, year)
   const thresholds = [indoor, 8.33, -8.33, -15, -30]
   const kwhEquivalent = convertToKwh(fuelType, fuelUsage) * furnaceEfficiency
-  const heatingDegrees = weather.reduce((acc, hour) => acc + (indoor - hour.temp), 0)
+  const heatingDegrees = filteredWeather.reduce((acc, hour) => acc + (indoor - hour.temp), 0)
 
   useEffect(() => {
     const storedHeatpumps = JSON.parse(

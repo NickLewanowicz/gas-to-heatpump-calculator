@@ -55,6 +55,13 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
 
     const duelFuelBreakeven = costKwh / (costGas / (convertToKwh(fuelType, 1) * formState.furnaceEfficiency))
 
+    // Compute magic number once at the top level
+    const totalEnergy = rows.reduce(
+        (acc, row) => acc + row.amountOfEnergyNeeded,
+        0
+    )
+    const magicNumber = kwhEquivalent / totalEnergy
+
     return (
         <Layout style={{ minHeight: '100vh', overflowX: 'hidden', maxWidth: '100VW' }}>
             <Header style={{
@@ -117,6 +124,7 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
                                 thresholds={thresholds}
                                 weather={filteredWeather}
                                 convertToKwh={convertToKwh}
+                                magicNumber={magicNumber}
                             />
                             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
                                 <div style={{ maxWidth: '90VW' }}>
@@ -124,6 +132,7 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
                                         rows={rows}
                                         heatpumps={heatpumps}
                                         selected={selected}
+                                        magicNumber={magicNumber}
                                     />
                                 </div>
                                 <Title level={4}>Performance Analysis</Title>

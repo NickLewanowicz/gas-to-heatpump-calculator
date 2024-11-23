@@ -121,6 +121,7 @@ export function getRows(
             copAverage,
             heatingDelta,
             amountOfEnergyNeeded,
+            hoursHeating,
         } = hoursInRange.reduce(
             (acc, hour) => {
                 const { cop: hourCop, cap: hourCap } = getEfficiencyAtTemp(
@@ -146,7 +147,8 @@ export function getRows(
                     fossilFuelKwh: acc.fossilFuelKwh + hourFossilFuelKwh,
                     amountOfEnergyNeeded:
                         acc.amountOfEnergyNeeded + amountOfEnergyNeeded,
-                    copAverage: acc.copAverage + effectiveCop,
+                    copAverage: amountOfEnergyNeeded > 0 ? acc.copAverage + effectiveCop : acc.copAverage,
+                    hoursHeating: amountOfEnergyNeeded > 0 ? acc.hoursHeating + 1 : acc.hoursHeating,
                 }
             },
             {
@@ -157,6 +159,7 @@ export function getRows(
                 fossilFuelKwh: 0,
                 copAverage: 0,
                 amountOfEnergyNeeded: 0,
+                hoursHeating: 0,
             }
         )
 
@@ -186,7 +189,7 @@ export function getRows(
             heatPumpKwhConsumed,
             heatPumpDuelFuel,
             fossilFuelKwh,
-            copAverage: copAverage / hoursInRange.length,
+            copAverage: copAverage / hoursHeating,
             amountOfEnergyNeeded,
         }
     })

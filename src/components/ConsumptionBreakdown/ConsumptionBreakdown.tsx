@@ -10,13 +10,15 @@ const { Text } = Typography
 type ConsumptionBreakdownProps = {
     rows: Row[], // Assuming Row is already defined
     heatpumps: Heatpump[], // Assuming Heatpump is already defined
-    selected: number, // Assuming selected is an index or similar
+    selected: number, // Assuming selected is an index or similar'
+    magicNumber: number
 }
 
 export const ConsumptionBreakdown: React.FC<ConsumptionBreakdownProps> = ({
     rows,
     heatpumps,
     selected,
+    magicNumber
 }) => {
     const columns = [
         {
@@ -56,12 +58,12 @@ export const ConsumptionBreakdown: React.FC<ConsumptionBreakdownProps> = ({
                 <Space direction="horizontal" style={{ whiteSpace: 'nowrap' }}>
                     <Tooltip title="Heat Pump Energy Consumption">
                         <Text>
-                            <HeatPumpIcon color="#1890ff" /> {Math.round(record.heatPumpKwhConsumed)}kWh
+                            <HeatPumpIcon color="#1890ff" /> {Math.round(record.heatPumpKwhConsumed * magicNumber)}kWh
                         </Text>
                     </Tooltip>
                     <Tooltip title="Auxiliary Energy Consumption">
                         <Text>
-                            <ResistiveHeatIcon color="#ff4d4f" /> {Math.round(record.resistiveKwhConsumed)}kWh
+                            <ResistiveHeatIcon color="#ff4d4f" /> {Math.round(record.resistiveKwhConsumed * magicNumber)}kWh
                         </Text>
                     </Tooltip>
                 </Space>
