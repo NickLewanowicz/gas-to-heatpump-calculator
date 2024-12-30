@@ -122,6 +122,8 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
                                         heatpumps={heatpumps}
                                         selected={selected}
                                         magicNumber={magicNumber}
+                                        gasRate={0.30}
+                                        gasEfficiency={0.95}
                                     />
                                 </div>
                                 <Title level={4}>Performance Analysis</Title>

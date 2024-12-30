@@ -2,7 +2,7 @@ import React from 'react'
 import { FuelType } from '../../hooks'
 import { Row, Heatpump, HourlyWeather } from '../../types'
 import { Table, Card, Typography, Statistic, Space, Divider, theme } from 'antd'
-import { FireFilled, ThunderboltFilled, HeatMapOutlined, RocketFilled, ExperimentFilled, PercentageOutlined, ApiOutlined } from '@ant-design/icons'
+import { FireFilled, ThunderboltFilled, HeatMapOutlined, RocketFilled, ExperimentFilled, PercentageOutlined, ApiOutlined, RocketOutlined, FireOutlined, DollarOutlined } from '@ant-design/icons'
 import { Tooltip } from 'antd'
 const { Text, Title } = Typography
 
@@ -151,6 +151,25 @@ export const Results: React.FC<ResultsProps> = ({
         }
     })
 
+    // Calculate total heat needed (in kWh)
+    const totalHeatKwh = rows.reduce((sum, row) => {
+        return sum + (row.heatPumpKwhConsumed + row.resistiveKwhConsumed) * row.copAverage * magicNumber
+    }, 0)
+
+    // Constants for gas calculations
+    const KWH_PER_M3 = 10.55  // kWh of energy per m³ of natural gas
+    const GAS_EFFICIENCY = 0.95  // 95% efficient furnace
+
+    // Calculate gas-only scenario
+    const gasOnlyM3 = totalHeatKwh / (KWH_PER_M3 * GAS_EFFICIENCY)
+    const gasOnlyCost = gasOnlyM3 * costGas
+
+    // Calculate heat pump costs
+    const heatPumpKwh = rows.reduce((sum, row) => sum + row.heatPumpKwhConsumed * magicNumber, 0)
+    const resistiveKwh = rows.reduce((sum, row) => sum + row.resistiveKwhConsumed * magicNumber, 0)
+    const totalKwh = heatPumpKwh + resistiveKwh
+    const averageCop = totalHeatKwh / (totalKwh * magicNumber)
+
     return (
         <Space
             direction="vertical"
@@ -164,6 +183,41 @@ export const Results: React.FC<ResultsProps> = ({
         >
             <Title level={4} style={{ fontSize: '1.2rem' }}>Cost Comparison</Title>
 
+            {/* Gas-only option */}
+            <Card size="small">
+                <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                    {/* Header */}
+                    <Space>
+                        <FireFilled style={{ color: token.colorTextSecondary }} />
+                        <Text strong>Natural Gas Only</Text>
+                    </Space>
+
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Space>
+                            <FireFilled style={{ color: token.colorTextSecondary }} />
+                            <Text>Annual cost</Text>
+                            <Statistic value={Math.round(gasOnlyCost)} prefix="$" valueStyle={{ fontSize: '14px' }} />
+                        </Space>
+
+                        <Space size="large" style={{ paddingLeft: token.paddingLG }}>
+                            <Tooltip title="Gas consumption">
+                                <Space size="small">
+                                    <FireFilled style={{ color: token.colorTextSecondary }} />
+                                    <Text type="secondary">{Math.round(gasOnlyM3)} m³</Text>
+                                </Space>
+                            </Tooltip>
+                            <Tooltip title="Furnace efficiency">
+                                <Space size="small">
+                                    <PercentageOutlined style={{ color: token.colorTextSecondary }} />
+                                    <Text type="secondary">{GAS_EFFICIENCY * 100}%</Text>
+                                </Space>
+                            </Tooltip>
+                        </Space>
+                    </Space>
+                </Space>
+            </Card>
+
+            {/* Existing heatpump options */}
             {heatpumpOptions.map((option, index) => (
                 <Card size="small" key={index}>
                     <Space direction="vertical" style={{ width: '100%' }} size="middle">

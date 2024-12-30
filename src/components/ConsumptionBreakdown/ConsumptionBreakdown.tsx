@@ -1,6 +1,6 @@
 import React from 'react'
 import { Table, Space, Tooltip, Typography, Card } from 'antd'
-import { InfoCircleOutlined, PercentageOutlined, RocketFilled, ExperimentFilled, QuestionCircleOutlined } from '@ant-design/icons'
+import { InfoCircleOutlined, PercentageOutlined, RocketFilled, ExperimentFilled, QuestionCircleOutlined, FireOutlined } from '@ant-design/icons'
 import { Row, Heatpump } from '../../types'
 import { HeatPumpIcon, ResistiveHeatIcon } from '../Icons/HvacIcons'
 
@@ -11,15 +11,22 @@ type ConsumptionBreakdownProps = {
     rows: Row[], // Assuming Row is already defined
     heatpumps: Heatpump[], // Assuming Heatpump is already defined
     selected: number, // Assuming selected is an index or similar'
-    magicNumber: number
+    magicNumber: number,
+    gasRate: number,  // $ per m³
+    gasEfficiency: number  // Furnace efficiency (e.g., 0.95)
 }
 
 export const ConsumptionBreakdown: React.FC<ConsumptionBreakdownProps> = ({
     rows,
     heatpumps,
     selected,
-    magicNumber
+    magicNumber,
+    gasRate,
+    gasEfficiency
 }) => {
+    // Constants for gas calculations
+    const KWH_PER_M3 = 10.55  // kWh of energy per m³ of natural gas
+
     const columns = [
         {
             title: (
@@ -49,8 +56,8 @@ export const ConsumptionBreakdown: React.FC<ConsumptionBreakdownProps> = ({
         },
         {
             title: (
-                <Tooltip title="Energy Consumption Details">
-                    Energy
+                <Tooltip title="Heat Pump Energy Consumption Details">
+                    Heat Pump Energy
                 </Tooltip>
             ),
             key: 'energy',
@@ -68,6 +75,40 @@ export const ConsumptionBreakdown: React.FC<ConsumptionBreakdownProps> = ({
                     </Tooltip>
                 </Space>
             ),
+        },
+        {
+            title: (
+                <Tooltip title="Natural Gas Consumption">
+                    Gas Energy
+                </Tooltip>
+            ),
+            key: 'gas',
+            render: (_, record) => {
+                // Calculate total heat needed in kWh
+                const totalHeatKwh = (record.heatPumpKwhConsumed + record.resistiveKwhConsumed) *
+                    record.copAverage * magicNumber
+
+                // Convert to m³ of gas needed
+                const gasM3 = totalHeatKwh / (KWH_PER_M3 * gasEfficiency)
+
+                // Calculate cost
+                const gasCost = gasM3 * gasRate
+
+                return (
+                    <Space direction="horizontal" style={{ whiteSpace: 'nowrap' }}>
+                        <Tooltip title="Natural Gas Consumption">
+                            <Text>
+                                <FireOutlined style={{ color: '#fa8c16' }} /> {Math.round(gasM3)}m³
+                            </Text>
+                        </Tooltip>
+                        <Tooltip title="Gas Cost">
+                            <Text type="secondary">
+                                (${Math.round(gasCost)})
+                            </Text>
+                        </Tooltip>
+                    </Space>
+                )
+            }
         },
         {
             title: 'Heat Pump Performance',
