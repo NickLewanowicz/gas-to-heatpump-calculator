@@ -1,7 +1,6 @@
 import React from 'react'
 import { Layout, Button, theme, Card, Space, Typography } from 'antd'
 import { HomeOutlined, ThunderboltOutlined } from '@ant-design/icons'
-import { Navigation } from '../Navigation/Navigation'
 import { InputForm } from '../InputForm/InputForm'
 import { CapacityChart } from '../CapacityChart/CapacityChart'
 import { HeatPumpInputTable } from '../HeatPumpInputTable/HeatPumpInputTable'
@@ -64,16 +63,6 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
 
     return (
         <Layout style={{ minHeight: '100vh', overflowX: 'hidden', maxWidth: '100VW' }}>
-            <Header style={{
-                background: token.colorBgElevated,
-                padding: 0,
-                height: 48,
-                lineHeight: '48px',
-                borderBottom: `1px solid ${token.colorBorder}`
-            }}>
-                <Navigation />
-            </Header>
-
             <Layout>
                 <SidePanel
                     isVisible={activePanel === 'inputs'}

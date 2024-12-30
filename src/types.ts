@@ -1,4 +1,9 @@
-import { FuelType } from './hooks'
+export enum FuelType {
+    NATURAL_GAS = "Natural Gas",
+    OIL = "Oil",
+    PROPANE = "Propane",
+    ELECTRIC = "Electric"
+}
 
 export interface HourlyWeather {
     datetime: Date
@@ -137,10 +142,10 @@ export interface ResultsProps {
 export type FuelUnit = 'm³' | 'L' | 'kWh'
 
 export const fuelUnits: Record<FuelType, FuelUnit> = {
-    'Natural Gas': 'm³',
-    'Oil': 'L',
-    'Propane': 'L',
-    'Electric': 'kWh'
+    [FuelType.NATURAL_GAS]: 'm³',
+    [FuelType.OIL]: 'L',
+    [FuelType.PROPANE]: 'L',
+    [FuelType.ELECTRIC]: 'kWh'
 }
 
 export interface YearRange {

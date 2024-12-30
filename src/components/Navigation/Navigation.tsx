@@ -1,48 +1,66 @@
 import React from 'react'
-import { Space, theme } from 'antd'
-import { GithubOutlined } from '@ant-design/icons'
-import { HvacSystemIcon } from '../Icons/HvacIcons'
+import { Layout, Menu, theme } from 'antd'
+import { GithubOutlined, CalculatorOutlined, LineChartOutlined, PercentageOutlined } from '@ant-design/icons'
+import { Link, useLocation } from 'react-router-dom'
+
+const { Header } = Layout
 
 export const Navigation = () => {
     const { token } = theme.useToken()
+    const location = useLocation()
+
+    const allMenuItems = [
+        {
+            key: '/',
+            icon: <CalculatorOutlined />,
+            label: <Link to="/">Calculator</Link>,
+            visible: true
+        },
+        {
+            key: '/breakeven',
+            icon: <LineChartOutlined />,
+            label: <Link to="/breakeven">Breakeven</Link>,
+            visible: false // Temporarily hidden
+        },
+        {
+            key: '/marginal',
+            icon: <PercentageOutlined />,
+            label: <Link to="/marginal">Marginal Heating Cost</Link>,
+            visible: true
+        }
+    ]
+
+    const visibleMenuItems = allMenuItems.filter(item => item.visible)
 
     return (
-        <div style={{
+        <Header style={{
+            padding: 0,
+            background: token.colorBgContainer,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            height: 48,
-            padding: `0 ${token.paddingLG}px`,
+            justifyContent: 'space-between'
         }}>
-            <Space align="center" size="middle">
-                <HvacSystemIcon style={{
-                    fontSize: 20,
-                    color: token.colorPrimary,
-                    width: '20px',
-                    height: '20px'
-                }} />
-                <span style={{
-                    fontSize: 16,
-                    fontWeight: 'bold',
-                    color: token.colorText
-                }}>
-                    Heat Pump Calculator
-                </span>
-            </Space>
-
+            <Menu
+                mode="horizontal"
+                selectedKeys={[location.pathname]}
+                items={visibleMenuItems}
+                style={{
+                    flex: 1,
+                    minWidth: 0
+                }}
+            />
             <a
                 href="https://github.com/NickLewanowicz/gas-to-heatpump-calculator"
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
+                    padding: '0 24px',
                     color: token.colorText,
-                    fontSize: 20,
-                    display: 'flex',
-                    alignItems: 'center'
+                    fontSize: 20
                 }}
             >
                 <GithubOutlined />
             </a>
-        </div>
+        </Header>
     )
 }

@@ -35,6 +35,9 @@ importers:
       chartjs-plugin-annotation:
         specifier: ^3.0.1
         version: 3.1.0(chart.js@4.4.5)
+      dayjs:
+        specifier: ^1.11.13
+        version: 1.11.13
       events:
         specifier: ^3.3.0
         version: 3.3.0

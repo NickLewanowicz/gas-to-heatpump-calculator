@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Routes, Route } from 'react-router-dom'
 import { Row, Heatpump } from './types'
 import { CityName } from './data/weather'
 import { cities } from './data/weather'
@@ -8,7 +8,11 @@ import { useHeatpumps } from './hooks/useHeatpumps/hook'
 import { useWeatherData } from './hooks/useWeatherData/hook'
 import { getRows, convertToKwh } from './utils/calculations'
 import { AppLayout } from './components/Layout/AppLayout'
+import { Breakeven } from './components/Breakeven/Breakeven'
+import { MarginalHeating } from './components/MarginalHeating/MarginalHeating'
 import 'antd/dist/reset.css'
+import { Navigation } from './components/Navigation/Navigation'
+import { Layout } from 'antd'
 
 const initialHeatpump: Heatpump = {
   name: 'Heatpump #1',
@@ -73,31 +77,40 @@ export default function App() {
   }, [heatpumps, indoor, designBtu, filteredWeather, selected, designTemp])
 
   return (
-    <AppLayout
-      formState={formState}
-      cities={[...cities]}
-      heatpumps={heatpumps}
-      selected={selected}
-      setSelected={setSelected}
-      addHeatpump={addHeatpump}
-      removeHeatpump={removeHeatpump}
-      updateHeatpump={updateHeatpump}
-      rows={rows}
-      indoor={indoor}
-      designTemp={designTemp}
-      designBtu={designBtu}
-      weather={weather}
-      filteredWeather={filteredWeather}
-      thresholds={thresholds}
-      kwhEquivalent={kwhEquivalent}
-      fuelUsage={fuelUsage}
-      fuelType={fuelType}
-      costGas={costGas}
-      costKwh={costKwh}
-      heatingDegrees={heatingDegrees}
-      getRows={(thresholds, filteredWeather, heatpump) =>
-        getRows(thresholds, filteredWeather, heatpump, indoor, designTemp, designBtu)}
-      convertToKwh={convertToKwh}
-    />
+    <Layout>
+      <Navigation />
+      <Layout>
+        <Routes>
+          <Route path="/" element={<AppLayout
+            formState={formState}
+            cities={[...cities]}
+            heatpumps={heatpumps}
+            selected={selected}
+            setSelected={setSelected}
+            addHeatpump={addHeatpump}
+            removeHeatpump={removeHeatpump}
+            updateHeatpump={updateHeatpump}
+            rows={rows}
+            indoor={indoor}
+            designTemp={designTemp}
+            designBtu={designBtu}
+            weather={weather}
+            filteredWeather={filteredWeather}
+            thresholds={thresholds}
+            kwhEquivalent={kwhEquivalent}
+            fuelUsage={fuelUsage}
+            fuelType={fuelType}
+            costGas={costGas}
+            costKwh={costKwh}
+            heatingDegrees={heatingDegrees}
+            getRows={(thresholds, filteredWeather, heatpump) =>
+              getRows(thresholds, filteredWeather, heatpump, indoor, designTemp, designBtu)}
+            convertToKwh={convertToKwh}
+          />} />
+          <Route path="/breakeven" element={<Breakeven />} />
+          <Route path="/marginal" element={<MarginalHeating />} />
+        </Routes>
+      </Layout>
+    </Layout>
   )
 }
