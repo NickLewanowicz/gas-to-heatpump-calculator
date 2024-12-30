@@ -27,7 +27,7 @@
     "recharts": "^2.13.0"
   },
   "scripts": {
-    "predeploy": "npm run build",
+    "predeploy": "pnpm build",
     "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
