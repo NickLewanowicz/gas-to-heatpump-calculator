@@ -1,7 +1,7 @@
 {
   "name": "stackblitz-starters-tqvcl7",
   "version": "0.0.0",
-  "homepage": "https://nicklewanowicz.github.io/gas-to-heatpump-calculator",
+  "homepage": "https://heat.frugalnick.ca",
   "private": true,
   "type": "module",
   "dependencies": {
@@ -14,6 +14,7 @@
     "antd": "^5.21.6",
     "chart.js": "^4.3.0",
     "chartjs-plugin-annotation": "^3.0.1",
+    "dayjs": "^1.11.13",
     "events": "^3.3.0",
     "gh-pages": "^5.0.0",
     "pako": "^2.1.0",
