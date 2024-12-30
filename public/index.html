@@ -14,10 +14,11 @@
     <title>Heat Cost Calculator</title>
     <script>
         (function () {
-            var redirect = sessionStorage.redirect;
-            delete sessionStorage.redirect;
-            if (redirect && redirect != location.href) {
-                history.replaceState(null, null, redirect);
+            const savedPath = sessionStorage.getItem('path');
+            if (savedPath && window.location.pathname === '/') {
+                sessionStorage.removeItem('path');
+                const newPath = savedPath.endsWith('/') ? savedPath.slice(0, -1) : savedPath;
+                window.history.replaceState(null, null, newPath);
             }
         })();
     </script>
