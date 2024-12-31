@@ -65,12 +65,12 @@ export default function App() {
     setInit(true)
   }, [])
 
-  useEffect(() => {
-    if (init) {
-      searchParams.set('heatpumps', encodeURI(JSON.stringify(heatpumps)))
-      setSearchParams(searchParams)
-    }
-  }, [heatpumps, init])
+  // useEffect(() => {
+  //   if (init) {
+  //     searchParams.set('heatpumps', encodeURI(JSON.stringify(heatpumps)))
+  //     setSearchParams(searchParams)
+  //   }
+  // }, [heatpumps, init])
 
   useEffect(() => {
     setRows(getRows(thresholds, filteredWeather, heatpumps[selected], indoor, designTemp, designBtu))

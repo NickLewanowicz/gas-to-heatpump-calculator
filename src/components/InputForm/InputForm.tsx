@@ -128,7 +128,6 @@ export const InputForm: React.FC<InputFormProps> = ({ formState, cities, weather
 
                     <Form.Item
                         label="Furnace Efficiency"
-                        name="furnaceEfficiency"
                         tooltip="The efficiency of your current heating system"
                         style={{ display: fuelType === 'Electric' ? 'none' : 'block' }}
                     >
