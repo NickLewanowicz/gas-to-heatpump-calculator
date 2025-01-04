@@ -1,6 +1,6 @@
 import React from 'react'
 import { Layout, Menu, theme } from 'antd'
-import { GithubOutlined, CalculatorOutlined, LineChartOutlined, PercentageOutlined } from '@ant-design/icons'
+import { GithubOutlined, CalculatorOutlined, LineChartOutlined, PercentageOutlined, HomeOutlined } from '@ant-design/icons'
 import { Link, useLocation } from 'react-router-dom'
 
 const { Header } = Layout
@@ -12,8 +12,14 @@ export const Navigation = () => {
     const allMenuItems = [
         {
             key: '/',
+            icon: <HomeOutlined />,
+            label: <Link to="/">Home</Link>,
+            visible: true
+        },
+        {
+            key: '/compare',
             icon: <CalculatorOutlined />,
-            label: <Link to="/">Calculator</Link>,
+            label: <Link to="/compare">System Comparison</Link>,
             visible: true
         },
         {

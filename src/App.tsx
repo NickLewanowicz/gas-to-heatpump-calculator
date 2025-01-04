@@ -10,6 +10,7 @@ import { getRows, convertToKwh } from './utils/calculations'
 import { AppLayout } from './components/Layout/AppLayout'
 import { Breakeven } from './components/Breakeven/Breakeven'
 import { MarginalHeating } from './components/MarginalHeating/MarginalHeating'
+import { Home } from './components/Home/Home'
 import 'antd/dist/reset.css'
 import { Navigation } from './components/Navigation/Navigation'
 import { Layout } from 'antd'
@@ -81,7 +82,8 @@ export default function App() {
       <Navigation />
       <Layout>
         <Routes>
-          <Route path="/" element={<AppLayout
+          <Route path="/" element={<Home />} />
+          <Route path="/compare" element={<AppLayout
             formState={formState}
             cities={[...cities]}
             heatpumps={heatpumps}
