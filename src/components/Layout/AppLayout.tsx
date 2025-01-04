@@ -1,208 +1,112 @@
 import React from 'react'
-import { Layout, Button, theme, Card, Space, Typography } from 'antd'
-import { HomeOutlined, ThunderboltOutlined } from '@ant-design/icons'
-import { InputForm } from '../InputForm/InputForm'
-import { CapacityChart } from '../CapacityChart/CapacityChart'
-import { HeatPumpInputTable } from '../HeatPumpInputTable/HeatPumpInputTable'
+import { Layout, Typography, Card, Space, Button, Descriptions, Select } from 'antd'
+import { SettingOutlined } from '@ant-design/icons'
 import { Results } from '../Results/Results'
-import { AppLayoutProps } from './types'
-import { useMediaQuery } from '../../hooks/useMediaQuery'
-import { SidePanel } from './Panels/SidePanel'
-import { getMultipleChartData } from '../../utils/chartData'
-import { ConsumptionBreakdown } from '../ConsumptionBreakdown/ConsumptionBreakdown'
+import { useApp } from '../../context/AppContext'
 
-const { Header, Content, Footer } = Layout
-const { Title } = Typography
+const { Content } = Layout
+const { Title, Text } = Typography
 
-type PanelType = 'none' | 'inputs'
-
-export const AppLayout: React.FC<AppLayoutProps> = (props) => {
+export const AppLayout = () => {
     const {
-        formState,
-        cities,
-        heatpumps,
-        selected,
-        setSelected,
-        addHeatpump,
-        removeHeatpump,
-        updateHeatpump,
-        rows,
         indoor,
         designTemp,
         designBtu,
-        weather,
-        filteredWeather,
-        thresholds,
-        kwhEquivalent,
-        fuelUsage,
-        fuelType,
+        city,
+        furnaceEfficiency,
         costGas,
         costKwh,
-        heatingDegrees,
-        getRows,
-        convertToKwh
-    } = props
+        fuelType,
+        fuelUsage,
+        seasonView,
+        year,
+        heatpumps,
+        selected,
+        setSelected,
+    } = useApp()
 
-    const isDesktop = useMediaQuery('(min-width: 1200px)')
-    const { token } = theme.useToken()
-    const [activePanel, setActivePanel] = React.useState<PanelType>('none')
-    const [showHeatpumpInputs, setShowHeatpumpInputs] = React.useState(false)
-
-    const handlePanelChange = (panel: PanelType) => {
-        setActivePanel(panel === activePanel ? 'none' : panel)
+    const getUnits = (fuelType: string) => {
+        switch (fuelType) {
+            case 'Natural Gas': return "m³"
+            case 'Oil':
+            case 'Propane': return "L"
+            case 'Electric': return "kWh"
+            default: return ""
+        }
     }
 
-    const duelFuelBreakeven = costKwh / (costGas / (convertToKwh(fuelType, 1) * formState.furnaceEfficiency))
-
-    // Compute magic number once at the top level
-    const totalEnergy = rows.reduce(
-        (acc, row) => acc + row.amountOfEnergyNeeded,
-        0
-    )
-    const magicNumber = kwhEquivalent / totalEnergy
-
     return (
-        <Layout style={{ minHeight: '100vh', overflowX: 'hidden', maxWidth: '100VW' }}>
-            <Layout>
-                <SidePanel
-                    isVisible={activePanel === 'inputs'}
-                    position="left"
-                >
-                    <InputForm
-                        formState={formState}
-                        cities={cities}
-                        weather={weather}
-                    />
-                </SidePanel>
+        <Content style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
+            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                <Title level={2}>System Comparison</Title>
 
-                <Layout style={{ background: token.colorBgContainer }}>
-                    <Content style={{
-                        position: 'fixed',
-                        top: 48,
-                        left: 0,
-                        right: 0,
-                        bottom: 56,
-                        padding: isDesktop ? token.padding : '8px',
-                        background: token.colorBgElevated,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflowY: 'auto',
-                        WebkitOverflowScrolling: 'touch'
-                    }}>
-                        <div style={{
-                            width: '100%',
-                            maxWidth: isDesktop ? 1600 : '100%',
-                            margin: '0 auto',
-                            display: 'grid',
-                            gridTemplateColumns: isDesktop ? 'minmax(320px, 400px) 1fr' : '1fr',
-                            gap: token.padding,
-                            minHeight: 'min-content',
-                            padding: token.padding
-                        }}>
+                <Card size="small">
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
+                            <Text strong>Current Settings</Text>
+                            <Button
+                                type="link"
+                                icon={<SettingOutlined />}
+                                onClick={() => document.querySelector('.ant-float-btn')?.dispatchEvent(
+                                    new MouseEvent('click', { bubbles: true })
+                                )}
+                            >
+                                Adjust Settings
+                            </Button>
+                        </Space>
 
-                            <Results
-                                rows={rows}
-                                kwhEquivalent={kwhEquivalent}
-                                fuelUsage={fuelUsage}
-                                fuelType={fuelType}
-                                costGas={costGas}
-                                costKwh={costKwh}
-                                heatpumps={heatpumps}
-                                heatingDegrees={heatingDegrees}
-                                getRows={getRows}
-                                thresholds={thresholds}
-                                weather={filteredWeather}
-                                convertToKwh={convertToKwh}
-                                magicNumber={magicNumber}
-                            />
-                            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                                <div style={{ maxWidth: '90VW' }}>
-                                    <ConsumptionBreakdown
-                                        rows={rows}
-                                        heatpumps={heatpumps}
-                                        selected={selected}
-                                        magicNumber={magicNumber}
-                                        gasRate={0.30}
-                                        gasEfficiency={0.95}
-                                    />
-                                </div>
-                                <Title level={4}>Performance Analysis</Title>
-                                <Card size="small">
-                                    <div style={{
-                                        width: '100%',
-                                        overflow: 'hidden'
-                                    }}>
-                                        <CapacityChart
-                                            data={getMultipleChartData(rows, heatpumps, indoor, designTemp, designBtu)}
-                                            duelFuelBreakeven={duelFuelBreakeven}
-                                            heatpumps={heatpumps}
-                                            selected={selected}
-                                            weather={filteredWeather}
-                                        />
-                                    </div>
-                                </Card>
-                            </Space>
-                        </div>
-                    </Content>
+                        <Descriptions column={{ xs: 1, sm: 2, md: 3 }} size="small">
+                            <Descriptions.Item label="Location">{city}</Descriptions.Item>
+                            <Descriptions.Item label="Time Period">
+                                {seasonView === 'heating' ? 'Heating Season' : 'Calendar Year'} {year}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Indoor Temperature">{indoor}°C</Descriptions.Item>
+                            <Descriptions.Item label="Design Temperature">{designTemp}°C</Descriptions.Item>
+                            <Descriptions.Item label="Design BTU">{designBtu.toLocaleString()} BTU</Descriptions.Item>
+                            <Descriptions.Item label="Current System">
+                                {fuelType} ({furnaceEfficiency * 100}% efficient)
+                            </Descriptions.Item>
+                            <Descriptions.Item label={`${fuelType} Usage`}>
+                                {fuelUsage} {getUnits(fuelType)}
+                            </Descriptions.Item>
+                            <Descriptions.Item label={`${fuelType} Cost`}>
+                                ${costGas}/{getUnits(fuelType)}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Electricity Cost">
+                                ${costKwh}/kWh
+                            </Descriptions.Item>
+                            <Descriptions.Item
+                                label="Heat Pump"
+                                labelStyle={{
+                                    padding: '8px 0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    height: '100%'
+                                }}
+                                contentStyle={{
+                                    padding: '4px 0',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                <Select
+                                    value={selected}
+                                    onChange={setSelected}
+                                    style={{ width: 200 }}
+                                >
+                                    {heatpumps.map((hp, index) => (
+                                        <Select.Option key={index} value={index}>
+                                            {hp.name}
+                                        </Select.Option>
+                                    ))}
+                                </Select>
+                            </Descriptions.Item>
+                        </Descriptions>
+                    </Space>
+                </Card>
 
-                    <Layout.Footer style={{
-                        position: 'fixed',
-                        bottom: 56,
-                        height: showHeatpumpInputs ? 500 : 0,
-                        padding: 0,
-                        width: '100%',
-                        background: token.colorBgElevated,
-                        borderRadius: `${token.borderRadiusLG}px ${token.borderRadiusLG}px 0 0`,
-                        transition: 'all 0.3s',
-                        zIndex: token.zIndexBase + 10,
-                        opacity: showHeatpumpInputs ? 1 : 0,
-                        visibility: showHeatpumpInputs ? 'visible' : 'hidden',
-                        boxShadow: token.boxShadowSecondary,
-                        overflow: 'hidden'
-                    }}>
-                        <div style={{
-                            height: '100%',
-                            overflowY: 'auto',
-                            padding: token.padding
-                        }}>
-                            <HeatPumpInputTable {...props} />
-                        </div>
-                    </Layout.Footer>
-                </Layout>
-            </Layout>
-
-            <Footer style={{
-                position: 'fixed',
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: 56,
-                padding: 0,
-                background: token.colorBgElevated,
-                borderTop: `1px solid ${token.colorBorder}`,
-                zIndex: token.zIndexBase + 11,
-                display: 'flex',
-                justifyContent: 'space-around',
-                alignItems: 'center',
-                fontSize: 'clamp(12px, 3.2vw, 14px)'
-            }}>
-                <Button
-                    type={activePanel === 'inputs' ? 'primary' : 'text'}
-                    icon={<HomeOutlined />}
-                    onClick={() => handlePanelChange('inputs')}
-                    style={{ fontSize: 'inherit' }}
-                >
-                    House
-                </Button>
-                <Button
-                    type={showHeatpumpInputs ? 'primary' : 'text'}
-                    icon={<ThunderboltOutlined />}
-                    onClick={() => setShowHeatpumpInputs(!showHeatpumpInputs)}
-                    style={{ fontSize: 'inherit' }}
-                >
-                    Heat Pump
-                </Button>
-            </Footer>
-        </Layout>
+                <Results />
+            </Space>
+        </Content>
     )
 }

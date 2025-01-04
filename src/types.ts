@@ -103,6 +103,7 @@ export interface CapacityChartProps {
     heatpumps?: Heatpump[]
     selected?: number
     weather: HourlyWeather[]
+    onHeatPumpChange?: (index: number) => void
 }
 
 export type Cities = string
@@ -154,3 +155,7 @@ export interface YearRange {
 }
 
 export type SeasonView = 'calendar' | 'heating'
+
+export interface MarginalHeatingCostProps {
+    // Empty for now as it uses context
+}

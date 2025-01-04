@@ -1,118 +1,42 @@
-import React, { useEffect, useState } from 'react'
-import { useSearchParams, Routes, Route } from 'react-router-dom'
-import { Row, Heatpump } from './types'
-import { CityName } from './data/weather'
-import { cities } from './data/weather'
-import { useFormState } from './hooks'
-import { useHeatpumps } from './hooks/useHeatpumps/hook'
-import { useWeatherData } from './hooks/useWeatherData/hook'
-import { getRows, convertToKwh } from './utils/calculations'
+import React, { useState } from 'react'
+import { Routes, Route } from 'react-router-dom'
+import { Layout, FloatButton } from 'antd'
+import { SettingOutlined } from '@ant-design/icons'
+import { AppProvider } from './context/AppContext'
+import { Navigation } from './components/Navigation/Navigation'
+import { Home } from './components/Home/Home'
 import { AppLayout } from './components/Layout/AppLayout'
 import { Breakeven } from './components/Breakeven/Breakeven'
 import { MarginalHeating } from './components/MarginalHeating/MarginalHeating'
-import { Home } from './components/Home/Home'
+import { SettingsPanel } from './components/Settings/SettingsPanel'
 import 'antd/dist/reset.css'
-import { Navigation } from './components/Navigation/Navigation'
-import { Layout } from 'antd'
-
-const initialHeatpump: Heatpump = {
-  name: 'Heatpump #1',
-  cap: [35000, 35000, 24000, 28000, 16000, 0],
-  cop: [3.5, 3, 2, 1.8, 1.2, 1],
-}
 
 export default function App() {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [init, setInit] = useState(false)
-  const [rows, setRows] = useState<Row[]>([])
-  const formState = useFormState()
-  const {
-    heatpumps,
-    addHeatpump,
-    removeHeatpump,
-    updateHeatpump,
-    selected,
-    setSelected,
-  } = useHeatpumps([initialHeatpump])
-
-  const {
-    indoor,
-    designTemp,
-    designBtu,
-    city,
-    furnaceEfficiency,
-    costGas,
-    costKwh,
-    fuelType,
-    fuelUsage,
-    seasonView,
-    year
-  } = formState
-
-  const { weather, filteredWeather, loading, error } = useWeatherData(city as CityName, seasonView, year)
-  const thresholds = [indoor, 8.33, -8.33, -15, -30]
-  const kwhEquivalent = convertToKwh(fuelType, fuelUsage) * furnaceEfficiency
-  const heatingDegrees = filteredWeather.reduce((acc, hour) => acc + (indoor - hour.temp), 0)
-
-  useEffect(() => {
-    const storedHeatpumps = JSON.parse(
-      decodeURI(searchParams.get('heatpumps') || '[]')
-    ) as Heatpump[]
-    if (storedHeatpumps.length) {
-      storedHeatpumps.forEach((heatpump, i) =>
-        i === 0 ? updateHeatpump(i, heatpump) : addHeatpump(heatpump)
-      )
-    }
-    setInit(true)
-  }, [])
-
-  // useEffect(() => {
-  //   if (init) {
-  //     searchParams.set('heatpumps', encodeURI(JSON.stringify(heatpumps)))
-  //     setSearchParams(searchParams)
-  //   }
-  // }, [heatpumps, init])
-
-  useEffect(() => {
-    setRows(getRows(thresholds, filteredWeather, heatpumps[selected], indoor, designTemp, designBtu))
-  }, [heatpumps, indoor, designBtu, filteredWeather, selected, designTemp])
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   return (
-    <Layout>
-      <Navigation />
+    <AppProvider>
       <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/compare" element={<AppLayout
-            formState={formState}
-            cities={[...cities]}
-            heatpumps={heatpumps}
-            selected={selected}
-            setSelected={setSelected}
-            addHeatpump={addHeatpump}
-            removeHeatpump={removeHeatpump}
-            updateHeatpump={updateHeatpump}
-            rows={rows}
-            indoor={indoor}
-            designTemp={designTemp}
-            designBtu={designBtu}
-            weather={weather}
-            filteredWeather={filteredWeather}
-            thresholds={thresholds}
-            kwhEquivalent={kwhEquivalent}
-            fuelUsage={fuelUsage}
-            fuelType={fuelType}
-            costGas={costGas}
-            costKwh={costKwh}
-            heatingDegrees={heatingDegrees}
-            getRows={(thresholds, filteredWeather, heatpump) =>
-              getRows(thresholds, filteredWeather, heatpump, indoor, designTemp, designBtu)}
-            convertToKwh={convertToKwh}
-          />} />
-          <Route path="/breakeven" element={<Breakeven />} />
-          <Route path="/marginal" element={<MarginalHeating />} />
-        </Routes>
+        <Navigation />
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/compare" element={<AppLayout />} />
+            <Route path="/breakeven" element={<Breakeven />} />
+            <Route path="/marginal" element={<MarginalHeating />} />
+          </Routes>
+        </Layout>
+        <FloatButton
+          icon={<SettingOutlined />}
+          type="primary"
+          style={{ right: 24 }}
+          onClick={() => setSettingsOpen(true)}
+        />
+        <SettingsPanel
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+        />
       </Layout>
-    </Layout>
+    </AppProvider>
   )
 }

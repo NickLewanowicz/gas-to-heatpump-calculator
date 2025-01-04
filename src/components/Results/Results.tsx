@@ -1,298 +1,137 @@
 import React from 'react'
-import { FuelType } from '../../hooks'
-import { Row, Heatpump, HourlyWeather } from '../../types'
-import { Table, Card, Typography, Statistic, Space, Divider, theme } from 'antd'
-import { FireFilled, ThunderboltFilled, HeatMapOutlined, RocketFilled, ExperimentFilled, PercentageOutlined, ApiOutlined, RocketOutlined, FireOutlined, DollarOutlined } from '@ant-design/icons'
-import { Tooltip } from 'antd'
-const { Text, Title } = Typography
+import { Card, Space, Typography } from 'antd'
+import { useApp } from '../../context/AppContext'
+import { ConsumptionBreakdown } from '../ConsumptionBreakdown/ConsumptionBreakdown'
+import { CapacityChart } from '../CapacityChart/CapacityChart'
+import { getMultipleChartData } from '../../utils/chartData'
 
-interface ResultOption {
-    title: string
-    consumption?: string
-    cost?: number
-    electricOption?: {
-        consumption: string
-        cost: number
-        details: {
-            heatpumpKwh: number
-            auxKwh: number
-            avgCop: number
-        }
-    }
-    fossilOption?: {
-        consumption: string
-        cost: number
-    }
+const { Title } = Typography
+
+const ENERGY_CONTENT = {
+    'Natural Gas': 10.55,  // kWh per m³
+    'Oil': 10.0,          // kWh per L (approximate)
+    'Propane': 7.1,       // kWh per L (approximate)
+    'Electric': 1.0,      // kWh per kWh
 }
 
-interface ResultsProps {
-    rows: Row[]
-    kwhEquivalent: number
-    fuelUsage: number
-    fuelType: FuelType
-    costGas: number
-    costKwh: number
-    heatpumps: Heatpump[]
-    heatingDegrees: number
-    getRows: (thresholds: number[], weather: HourlyWeather[], heatpump: Heatpump) => Row[]
-    thresholds: number[]
-    weather: HourlyWeather[]
-    convertToKwh: (fuelType: FuelType, quantity: number) => number
-    magicNumber: number
-}
+export const Results = () => {
+    const {
+        indoor,
+        designTemp,
+        designBtu,
+        weather,
+        filteredWeather,
+        thresholds,
+        kwhEquivalent,
+        fuelUsage,
+        fuelType,
+        costGas,
+        costKwh,
+        heatingDegrees,
+        getRows,
+        convertToKwh,
+        heatpumps,
+        selected,
+        seasonView,
+        year,
+        furnaceEfficiency,
+    } = useApp()
 
-export const Results: React.FC<ResultsProps> = ({
-    rows,
-    kwhEquivalent,
-    fuelUsage,
-    fuelType,
-    costGas,
-    costKwh,
-    heatpumps,
-    heatingDegrees,
-    getRows,
-    thresholds,
-    weather,
-    convertToKwh,
-    magicNumber,
-}) => {
-    const { token } = theme.useToken()
-
-    const getUnits = (fuelType: FuelType) => {
-        switch (fuelType) {
-            case FuelType.NATURAL_GAS:
-                return "m3"
-            case FuelType.OIL:
-            case FuelType.PROPANE:
-                return "L"
-        }
-    }
-
-    const getTotals = (rows: Row[]) => {
-        const totalEnery = rows.reduce(
-            (acc, row) => acc + row.amountOfEnergyNeeded,
-            0
-        )
-        return rows.reduce(
-            (acc, row) => {
-                return {
-                    totalConsumed:
-                        acc.totalConsumed +
-                        row.heatPumpKwhConsumed * magicNumber +
-                        row.resistiveKwhConsumed * magicNumber,
-                    totalOutput: acc.totalOutput + row.amountOfEnergyNeeded,
-                    heatpumpConsumed:
-                        acc.heatpumpConsumed + row.heatPumpKwhConsumed * magicNumber,
-                    auxConsumed: acc.auxConsumed + row.resistiveKwhConsumed * magicNumber,
-                    heatpumpOutput:
-                        acc.heatpumpOutput + row.heatPumpKwhConsumed * row.copAverage,
-                    auxOutput: acc.auxConsumed + row.resistiveKwhConsumed,
-                    heatPumpDuelFuelConsumed:
-                        acc.heatPumpDuelFuelConsumed + row.heatPumpDuelFuel * magicNumber,
-                    fossilFuelKwhTotal:
-                        acc.fossilFuelKwhTotal + row.fossilFuelKwh * magicNumber,
-                }
-            },
-            {
-                totalConsumed: 0,
-                totalOutput: 0,
-                heatpumpConsumed: 0,
-                auxConsumed: 0,
-                heatpumpOutput: 0,
-                auxOutput: 0,
-                heatPumpDuelFuelConsumed: 0,
-                fossilFuelKwhTotal: 0,
-            }
-        )
-    }
-
-    const totals = getTotals(rows)
-
-    const baseOptions: ResultOption[] = [
-        {
-            title: 'Fossil Fuel',
-            consumption: `${fuelUsage} ${getUnits(fuelType)}`,
-            cost: costGas * fuelUsage
-        },
-        {
-            title: 'Baseboard Heat',
-            consumption: `${kwhEquivalent.toFixed(2)} kWh`,
-            cost: Math.round(kwhEquivalent * costKwh)
-        }
-    ]
-
-    const heatpumpOptions: ResultOption[] = heatpumps.map(heatpump => {
-        const heatpumpRows = getRows(thresholds, weather, heatpump)
-        const heatpumpTotals = getTotals(heatpumpRows)
-
-        console.log(heatpumpRows)
-        return {
-            title: heatpump.name,
-            electricOption: {
-                consumption: `${Math.round(heatpumpTotals.totalConsumed)} kWh`,
-                cost: Math.round(heatpumpTotals.totalConsumed * costKwh),
-                details: {
-                    heatpumpKwh: Math.round(heatpumpTotals.heatpumpConsumed),
-                    auxKwh: Math.round(heatpumpTotals.auxConsumed),
-                    avgCop: Number((heatpumpRows.reduce((acc, row) => {
-                        const weight = heatingDegrees > 0 ? row.heatingDegrees / heatingDegrees : 0
-                        const weightedCop = row.copAverage ? row.copAverage * weight : 0
-                        return acc + weightedCop
-                    }, 0)).toFixed(2))
-                }
-            },
-            fossilOption: {
-                consumption: `${Math.round(heatpumpTotals.heatPumpDuelFuelConsumed)} kWh + ${Math.round(heatpumpTotals.fossilFuelKwhTotal / convertToKwh(fuelType, 1))} ${getUnits(fuelType)}`,
-                cost: Math.round(
-                    heatpumpTotals.heatPumpDuelFuelConsumed * costKwh +
-                    (heatpumpTotals.fossilFuelKwhTotal / convertToKwh(fuelType, 1)) * costGas
-                )
-            }
-        }
-    })
+    const rows = getRows(thresholds, filteredWeather, heatpumps[selected], indoor, designTemp, designBtu)
+    const totalEnergy = rows.reduce((acc, row) => acc + row.amountOfEnergyNeeded, 0)
+    const magicNumber = kwhEquivalent / totalEnergy
+    const duelFuelBreakeven = costKwh / (costGas / (convertToKwh(fuelType, 1) * furnaceEfficiency))
 
     // Calculate total heat needed (in kWh)
     const totalHeatKwh = rows.reduce((sum, row) => {
         return sum + (row.heatPumpKwhConsumed + row.resistiveKwhConsumed) * row.copAverage * magicNumber
     }, 0)
 
-    // Constants for gas calculations
-    const KWH_PER_M3 = 10.55  // kWh of energy per m³ of natural gas
-    const GAS_EFFICIENCY = 0.95  // 95% efficient furnace
-
-    // Calculate gas-only scenario
-    const gasOnlyM3 = totalHeatKwh / (KWH_PER_M3 * GAS_EFFICIENCY)
+    // Calculate current fossil fuel system
+    const gasOnlyM3 = totalHeatKwh / (ENERGY_CONTENT[fuelType] * furnaceEfficiency)
     const gasOnlyCost = gasOnlyM3 * costGas
 
-    // Calculate heat pump costs
+    // Calculate full electric heat pump system
     const heatPumpKwh = rows.reduce((sum, row) => sum + row.heatPumpKwhConsumed * magicNumber, 0)
     const resistiveKwh = rows.reduce((sum, row) => sum + row.resistiveKwhConsumed * magicNumber, 0)
     const totalKwh = heatPumpKwh + resistiveKwh
-    const averageCop = totalHeatKwh / (totalKwh * magicNumber)
+
+    // Calculate average COP for full electric mode (weighted by actual heat provided)
+    const fullElectricCop = rows.reduce((acc, row) => {
+        const heatFromHeatPump = row.heatPumpKwhConsumed * row.copAverage * magicNumber
+        const totalHeatThisRow = (row.heatPumpKwhConsumed + row.resistiveKwhConsumed) * row.copAverage * magicNumber
+        return acc + (row.copAverage * (heatFromHeatPump / totalHeatKwh))
+    }, 0)
+
+    // Calculate hybrid system (heat pump + existing furnace)
+    // Use heat pump when it can meet the full heating load, use furnace for the rest
+    const hybridCalc = rows.reduce((acc, row) => {
+        const totalHeat = (row.heatPumpKwhConsumed + row.resistiveKwhConsumed) * row.copAverage * magicNumber
+        const heatPumpCapacity = heatpumps[selected].cap[rows.indexOf(row)]
+        const requiredBtu = Math.round((designBtu / (indoor - -30)) * (indoor - row.max))
+
+        if (heatPumpCapacity >= requiredBtu) {
+            // Heat pump can handle the full load at this temperature
+            return {
+                heatPumpKwh: acc.heatPumpKwh + totalHeat / row.copAverage,
+                fuelUsage: acc.fuelUsage,
+                weightedCop: acc.weightedCop + (row.copAverage * (totalHeat / totalHeatKwh)),
+                heatPumpHeatTotal: acc.heatPumpHeatTotal + totalHeat
+            }
+        } else {
+            // Need to use the furnace at this temperature
+            return {
+                heatPumpKwh: acc.heatPumpKwh,
+                fuelUsage: acc.fuelUsage + totalHeat / (ENERGY_CONTENT[fuelType] * furnaceEfficiency),
+                weightedCop: acc.weightedCop,
+                heatPumpHeatTotal: acc.heatPumpHeatTotal
+            }
+        }
+    }, { heatPumpKwh: 0, fuelUsage: 0, weightedCop: 0, heatPumpHeatTotal: 0 })
+
+    // Calculate average COP for hybrid mode (only when heat pump is used)
+    const hybridCop = hybridCalc.heatPumpHeatTotal > 0
+        ? hybridCalc.weightedCop * (totalHeatKwh / hybridCalc.heatPumpHeatTotal)
+        : 0
+
+    const hybridCost = hybridCalc.heatPumpKwh * costKwh + hybridCalc.fuelUsage * costGas
 
     return (
-        <Space
-            direction="vertical"
-            size="middle"
-            style={{
-                width: '100%',
-                maxWidth: '100%',
-                padding: '0 8px',
-                overflow: 'hidden'
-            }}
-        >
-            <Title level={4} style={{ fontSize: '1.2rem' }}>Cost Comparison</Title>
-
-            {/* Gas-only option */}
-            <Card size="small">
-                <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                    {/* Header */}
-                    <Space>
-                        <FireFilled style={{ color: token.colorTextSecondary }} />
-                        <Text strong>Natural Gas Only</Text>
-                    </Space>
-
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                        <Space>
-                            <FireFilled style={{ color: token.colorTextSecondary }} />
-                            <Text>Annual cost</Text>
-                            <Statistic value={Math.round(gasOnlyCost)} prefix="$" valueStyle={{ fontSize: '14px' }} />
-                        </Space>
-
-                        <Space size="large" style={{ paddingLeft: token.paddingLG }}>
-                            <Tooltip title="Gas consumption">
-                                <Space size="small">
-                                    <FireFilled style={{ color: token.colorTextSecondary }} />
-                                    <Text type="secondary">{Math.round(gasOnlyM3)} m³</Text>
-                                </Space>
-                            </Tooltip>
-                            <Tooltip title="Furnace efficiency">
-                                <Space size="small">
-                                    <PercentageOutlined style={{ color: token.colorTextSecondary }} />
-                                    <Text type="secondary">{GAS_EFFICIENCY * 100}%</Text>
-                                </Space>
-                            </Tooltip>
-                        </Space>
-                    </Space>
-                </Space>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <Card>
+                <Title level={4}>System Comparison</Title>
+                <ConsumptionBreakdown
+                    rows={rows}
+                    heatpumps={heatpumps}
+                    selected={selected}
+                    magicNumber={magicNumber}
+                    gasRate={costGas}
+                    gasEfficiency={furnaceEfficiency}
+                    kwhRate={costKwh}
+                    fuelType={fuelType}
+                    gasOnlyM3={gasOnlyM3}
+                    gasOnlyCost={gasOnlyCost}
+                    heatPumpKwh={heatPumpKwh}
+                    resistiveKwh={resistiveKwh}
+                    totalKwh={totalKwh}
+                    averageCop={fullElectricCop}
+                    hybridHeatPumpKwh={hybridCalc.heatPumpKwh}
+                    hybridFuelUsage={hybridCalc.fuelUsage}
+                    hybridCost={hybridCost}
+                    hybridCop={hybridCop}
+                />
             </Card>
 
-            {/* Existing heatpump options */}
-            {heatpumpOptions.map((option, index) => (
-                <Card size="small" key={index}>
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
-                        {/* Header */}
-                        <Space>
-                            <HeatMapOutlined style={{ color: token.colorTextSecondary }} />
-                            <Text strong>{option.title}</Text>
-                        </Space>
-
-                        {/* Electric backup option */}
-                        <Space direction="vertical" style={{ width: '100%' }}>
-                            <Tooltip title="System uses electric resistance heating when supplemental heat is needed">
-                                <Space>
-                                    <ThunderboltFilled style={{ color: token.colorTextSecondary }} />
-                                    <Text>Electric backup</Text>
-                                    <Statistic value={option.electricOption.cost} prefix="$" valueStyle={{ fontSize: '14px' }} />
-                                </Space>
-                            </Tooltip>
-
-                            <Space size="large" style={{ paddingLeft: token.paddingLG }}>
-                                <Tooltip title="Energy consumed by heat pump">
-                                    <Space size="small">
-                                        <ApiOutlined style={{ color: token.colorTextSecondary }} />
-                                        <Text type="secondary">{option.electricOption.details.heatpumpKwh} kWh</Text>
-                                    </Space>
-                                </Tooltip>
-                                <Tooltip title="Auxiliary energy consumption">
-                                    <Space size="small">
-                                        <ExperimentFilled style={{ color: token.colorTextSecondary }} />
-                                        <Text type="secondary">{option.electricOption.details.auxKwh} kWh</Text>
-                                    </Space>
-                                </Tooltip>
-                                <Tooltip title="Coefficient of Performance - The ratio of heat output to energy input">
-                                    <Space size="small">
-                                        <PercentageOutlined style={{ color: token.colorTextSecondary }} />
-                                        <Text type="secondary">{option.electricOption.details.avgCop}</Text>
-                                    </Space>
-                                </Tooltip>
-                            </Space>
-                        </Space>
-
-                        {/* Fossil fuel backup option - only show if not electric */}
-                        {fuelType !== 'Electric' && (
-                            <Space direction="vertical" style={{ width: '100%' }}>
-                                <Tooltip title={`System uses ${fuelType.toLowerCase()} when supplemental heat is needed`}>
-                                    <Space>
-                                        <FireFilled style={{ color: token.colorTextSecondary }} />
-                                        <Text>{fuelType} backup</Text>
-                                        <Statistic value={option.fossilOption.cost} prefix="$" valueStyle={{ fontSize: '14px' }} />
-                                    </Space>
-                                </Tooltip>
-
-                                <Space size="large" style={{ paddingLeft: token.paddingLG }}>
-                                    <Tooltip title="Energy consumed by heat pump">
-                                        <Space size="small">
-                                            <ApiOutlined style={{ color: token.colorTextSecondary }} />
-                                            <Text type="secondary">
-                                                {option.fossilOption.consumption.split('+')[0].trim()}
-                                            </Text>
-                                        </Space>
-                                    </Tooltip>
-                                    <Tooltip title="Auxiliary energy consumption">
-                                        <Space size="small">
-                                            <FireFilled style={{ color: token.colorTextSecondary }} />
-                                            <Text type="secondary">
-                                                {option.fossilOption.consumption.split('+')[1].trim()}
-                                            </Text>
-                                        </Space>
-                                    </Tooltip>
-                                </Space>
-                            </Space>
-                        )}
-                    </Space>
-                </Card>
-            ))}
+            <Card>
+                <Title level={4}>Performance Analysis</Title>
+                <CapacityChart
+                    data={getMultipleChartData(rows, heatpumps, indoor, designTemp, designBtu)}
+                    duelFuelBreakeven={duelFuelBreakeven}
+                    heatpumps={heatpumps}
+                    selected={selected}
+                    weather={filteredWeather}
+                />
+            </Card>
         </Space>
     )
 }
