@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Layout, Menu } from 'antd'
-import { HomeOutlined, CalculatorOutlined, LineChartOutlined } from '@ant-design/icons'
+import { HomeOutlined, CalculatorOutlined, LineChartOutlined, DollarOutlined } from '@ant-design/icons'
 
 const { Header } = Layout
 
@@ -23,6 +23,12 @@ export const Navigation = () => {
             key: '/marginal',
             label: <Link to="/marginal">Marginal Heating Cost</Link>,
             icon: <LineChartOutlined />,
+        },
+        {
+            key: '/breakeven',
+            label: "Breakeven Analysis (Coming Soon)",
+            icon: <DollarOutlined />,
+            disabled: true,
         },
     ]
 

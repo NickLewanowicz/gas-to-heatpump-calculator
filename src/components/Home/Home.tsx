@@ -90,7 +90,7 @@ export const Home = () => {
                         <Col xs={24} md={12}>
                             <Title level={4}>Data-Driven Analysis</Title>
                             <Paragraph>
-                                Our calculator uses historical weather data from Environment Canada to provide accurate
+                                Our calculator uses historical weather data to provide accurate
                                 heating requirement calculations based on real temperature patterns in your area.
                             </Paragraph>
                         </Col>

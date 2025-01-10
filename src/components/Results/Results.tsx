@@ -1,18 +1,15 @@
 import React from 'react'
-import { Card, Space, Typography } from 'antd'
+import { Row } from '../../types'
+import { Card, Space, Table, Typography } from 'antd'
+import { ColumnType } from 'antd/es/table'
+import { useContext } from 'react'
 import { useApp } from '../../context/AppContext'
+import { FUEL_CONVERSION } from '../../constants/fuel'
 import { ConsumptionBreakdown } from '../ConsumptionBreakdown/ConsumptionBreakdown'
 import { CapacityChart } from '../CapacityChart/CapacityChart'
 import { getMultipleChartData } from '../../utils/chartData'
 
 const { Title } = Typography
-
-const ENERGY_CONTENT = {
-    'Natural Gas': 10.55,  // kWh per m³
-    'Oil': 10.0,          // kWh per L (approximate)
-    'Propane': 7.1,       // kWh per L (approximate)
-    'Electric': 1.0,      // kWh per kWh
-}
 
 export const Results = () => {
     const {
@@ -48,7 +45,7 @@ export const Results = () => {
     }, 0)
 
     // Calculate current fossil fuel system
-    const gasOnlyM3 = totalHeatKwh / (ENERGY_CONTENT[fuelType] * furnaceEfficiency)
+    const gasOnlyM3 = totalHeatKwh / (FUEL_CONVERSION[fuelType] * furnaceEfficiency)
     const gasOnlyCost = gasOnlyM3 * costGas
 
     // Calculate full electric heat pump system
@@ -82,7 +79,7 @@ export const Results = () => {
             // Need to use the furnace at this temperature
             return {
                 heatPumpKwh: acc.heatPumpKwh,
-                fuelUsage: acc.fuelUsage + totalHeat / (ENERGY_CONTENT[fuelType] * furnaceEfficiency),
+                fuelUsage: acc.fuelUsage + totalHeat / (FUEL_CONVERSION[fuelType] * furnaceEfficiency),
                 weightedCop: acc.weightedCop,
                 heatPumpHeatTotal: acc.heatPumpHeatTotal
             }

@@ -3,6 +3,8 @@ import { Form, InputNumber, Select, Radio, Space, Card } from 'antd'
 import { InfoCircleOutlined } from '@ant-design/icons'
 import { cities } from '../../data/weather'
 import { useApp } from '../../context/AppContext'
+import { SeasonView, HourlyWeather } from '../../types'
+import type { DefaultOptionType } from 'antd/es/select'
 
 export const HouseSettings = () => {
     const {
@@ -37,35 +39,26 @@ export const HouseSettings = () => {
         { label: 'Electric (kWh)', value: 'Electric' }
     ]
 
-    interface YearOption {
-        value: number
-        label: string
-        startDate: Date
-        endDate: Date
+    function getYearOptions(weather: HourlyWeather[], seasonView: SeasonView): DefaultOptionType[] {
+        if (!weather || weather.length === 0) return []
+
+        const years = new Set<number>()
+        weather.forEach(hour => {
+            const date = new Date(hour.datetime)
+            years.add(date.getFullYear())
+        })
+
+        return Array.from(years)
+            .sort((a, b) => b - a)
+            .map(year => ({
+                value: year,
+                label: seasonView === 'year'
+                    ? year.toString()
+                    : `${year}-${year + 1} Heating Season`
+            }))
     }
 
-    const getAvailableYears = (weather: any[], view: 'heating' | 'calendar'): YearOption[] => {
-        if (!weather.length) return []
-
-        const years = new Set(
-            weather.map(entry => new Date(entry.datetime).getFullYear())
-        )
-
-        return Array.from(years).map(year => ({
-            value: year,
-            label: view === 'calendar'
-                ? year.toString()
-                : `${year}-${year + 1} Heating Season`,
-            startDate: view === 'calendar'
-                ? new Date(`${year}-01-01`)
-                : new Date(`${year}-09-01`),
-            endDate: view === 'calendar'
-                ? new Date(`${year}-12-31`)
-                : new Date(`${year + 1}-08-31`)
-        })).sort((a, b) => b.value - a.value)
-    }
-
-    const availableYears = getAvailableYears(weather, seasonView)
+    const yearOptions = getYearOptions(weather, seasonView)
 
     return (
         <Card title="House Settings">
@@ -157,7 +150,7 @@ export const HouseSettings = () => {
                         <Select
                             value={year}
                             onChange={value => setYear(value)}
-                            options={availableYears}
+                            options={yearOptions}
                             style={{ width: '100%' }}
                         />
                     </Space>

@@ -1,21 +1,33 @@
 import React from 'react'
 import { Typography, Card, Space, Button, Descriptions, Form, InputNumber, Radio, TimePicker } from 'antd'
 import { SettingOutlined } from '@ant-design/icons'
-import { useWeatherData } from '../../hooks/useWeatherData/hook'
 import { HeatingDegreeChart } from './HeatingDegreeChart'
 import { useApp } from '../../context/AppContext'
+import { SeasonView } from '../../types'
 
 const { Text } = Typography
+
+interface HeatingDegreeChartProps {
+    weather: any[]
+    baseTemp: number
+    reducedTemp: number
+    setbackType: 'overnight' | '24/7'
+    startTime: any
+    endTime: any
+    seasonView: SeasonView
+    selectedYear: number
+}
 
 export const MarginalHeating = () => {
     const {
         city,
-        year,
+        weather,
+        filteredWeather,
+        indoor,
         seasonView,
-        baseTemp,
-        setBaseTemp,
-        reducedTemp,
-        setReducedTemp,
+        year,
+        setbackTemp,
+        setSetbackTemp,
         setbackType,
         setSetbackType,
         startTime,
@@ -23,9 +35,6 @@ export const MarginalHeating = () => {
         endTime,
         setEndTime
     } = useApp()
-
-    // Get weather data and available years
-    const { weather, filteredWeather } = useWeatherData(city, seasonView, year)
 
     return (
         <div style={{ padding: '24px' }}>
@@ -49,30 +58,26 @@ export const MarginalHeating = () => {
                             <Descriptions column={{ xs: 1, sm: 2 }} size="small">
                                 <Descriptions.Item label="Location">{city}</Descriptions.Item>
                                 <Descriptions.Item label="Time Period">
-                                    {seasonView === 'heating' ? 'Heating Season' : 'Calendar Year'} {year}
+                                    {seasonView === 'heating' ? 'Heating Season' : 'Year'} {year}
                                 </Descriptions.Item>
+                                <Descriptions.Item label="Indoor Temperature">{indoor}°C</Descriptions.Item>
                             </Descriptions>
                         </Space>
                     </Card>
 
-                    <Card title="Temperature Settings">
+                    <Card title="Temperature Setback">
                         <Form layout="vertical">
-                            <Form.Item label="Base Temperature (°C)">
+                            <Form.Item label="Setback Amount (°C)">
                                 <InputNumber
-                                    value={baseTemp}
-                                    onChange={value => setBaseTemp(value || 21)}
+                                    value={setbackTemp}
+                                    onChange={value => setSetbackTemp(value || 2)}
                                     min={0}
-                                    max={30}
+                                    max={10}
+                                    addonAfter="°C"
                                 />
-                            </Form.Item>
-
-                            <Form.Item label="Reduced Temperature (°C)">
-                                <InputNumber
-                                    value={reducedTemp}
-                                    onChange={value => setReducedTemp(value || 19)}
-                                    min={0}
-                                    max={30}
-                                />
+                                <Text type="secondary" style={{ marginLeft: 8 }}>
+                                    Temperature will be reduced to {(indoor - setbackTemp).toFixed(1)}°C during setback periods
+                                </Text>
                             </Form.Item>
 
                             <Form.Item label="Setback Type">
@@ -103,8 +108,8 @@ export const MarginalHeating = () => {
                     <Card title="Monthly Heating Degree Hours">
                         <HeatingDegreeChart
                             weather={filteredWeather}
-                            baseTemp={baseTemp}
-                            reducedTemp={reducedTemp}
+                            baseTemp={indoor}
+                            reducedTemp={indoor - setbackTemp}
                             setbackType={setbackType}
                             startTime={startTime}
                             endTime={endTime}

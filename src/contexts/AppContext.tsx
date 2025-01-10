@@ -1,5 +1,6 @@
 import React, { createContext, useState } from 'react'
 import { Heatpump } from '../types'
+import { DEFAULTS } from '../constants/defaults'
 
 export interface AppContextType {
     city: string
@@ -17,13 +18,13 @@ export interface AppContextType {
 }
 
 export const AppContext = createContext<AppContextType>({
-    city: 'Toronto',
+    city: DEFAULTS.CITY,
     setCity: () => { },
-    electricityRate: 0.13,
+    electricityRate: DEFAULTS.COST_ELECTRICITY,
     setElectricityRate: () => { },
-    gasRate: 0.42,
+    gasRate: DEFAULTS.COST_GAS,
     setGasRate: () => { },
-    furnaceEfficiency: 0.96,
+    furnaceEfficiency: DEFAULTS.FURNACE_EFFICIENCY,
     setFurnaceEfficiency: () => { },
     heatpumps: [],
     setHeatpumps: () => { },
@@ -32,10 +33,10 @@ export const AppContext = createContext<AppContextType>({
 })
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [city, setCity] = useState<string>('Toronto')
-    const [electricityRate, setElectricityRate] = useState(0.13)
-    const [gasRate, setGasRate] = useState(0.42)
-    const [furnaceEfficiency, setFurnaceEfficiency] = useState(0.96)
+    const [city, setCity] = useState<string>(DEFAULTS.CITY)
+    const [electricityRate, setElectricityRate] = useState(DEFAULTS.COST_ELECTRICITY)
+    const [gasRate, setGasRate] = useState(DEFAULTS.COST_GAS)
+    const [furnaceEfficiency, setFurnaceEfficiency] = useState(DEFAULTS.FURNACE_EFFICIENCY)
     const [heatpumps, setHeatpumps] = useState<Heatpump[]>([])
     const [selectedHeatpump, setSelectedHeatpump] = useState(0)
 

@@ -184,7 +184,7 @@ export const EnergyConsumptionChart: React.FC<EnergyConsumptionChartProps> = ({
     }
 
     const getYearForMonth = (month: string): number => {
-        if (seasonView === 'calendar') {
+        if (seasonView === 'year') {
             return year
         }
         // For heating season, months Sep-Dec are in the first year, Jan-May in the second year
@@ -201,7 +201,7 @@ export const EnergyConsumptionChart: React.FC<EnergyConsumptionChartProps> = ({
         } = {}
 
         // Initialize months based on season view
-        const relevantMonths = seasonView === 'calendar'
+        const relevantMonths = seasonView === 'year'
             ? MONTHS
             : [...MONTHS.slice(8), ...MONTHS.slice(0, 5)] // Sep to May
 
@@ -245,7 +245,7 @@ export const EnergyConsumptionChart: React.FC<EnergyConsumptionChartProps> = ({
 
         return Object.entries(monthlyData)
             .sort((a, b) => {
-                if (seasonView === 'calendar') {
+                if (seasonView === 'year') {
                     return MONTHS.indexOf(a[0]) - MONTHS.indexOf(b[0])
                 }
                 // For heating season, sort Sep-Dec then Jan-May

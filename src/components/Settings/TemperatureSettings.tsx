@@ -6,10 +6,9 @@ import dayjs from 'dayjs'
 
 export const TemperatureSettings = () => {
     const {
-        baseTemp,
-        setBaseTemp,
-        reducedTemp,
-        setReducedTemp,
+        indoor,
+        setbackTemp,
+        setSetbackTemp,
         setbackType,
         setSetbackType,
         startTime,
@@ -20,22 +19,17 @@ export const TemperatureSettings = () => {
 
     return (
         <Form layout="vertical">
-            <Form.Item label="Base Temperature (°C)">
+            <Form.Item label="Setback Amount (°C)">
                 <InputNumber
-                    value={baseTemp}
-                    onChange={value => setBaseTemp(value || 21)}
+                    value={setbackTemp}
+                    onChange={value => setSetbackTemp(value || 2)}
                     min={0}
-                    max={30}
+                    max={10}
+                    addonAfter="°C"
                 />
-            </Form.Item>
-
-            <Form.Item label="Reduced Temperature (°C)">
-                <InputNumber
-                    value={reducedTemp}
-                    onChange={value => setReducedTemp(value || 19)}
-                    min={0}
-                    max={30}
-                />
+                <div style={{ marginTop: 8, color: 'rgba(0, 0, 0, 0.45)' }}>
+                    Temperature will be reduced to {(indoor - setbackTemp).toFixed(1)}°C during setback periods
+                </div>
             </Form.Item>
 
             <Form.Item label="Setback Type">

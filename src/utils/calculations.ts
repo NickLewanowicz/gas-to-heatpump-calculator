@@ -1,7 +1,39 @@
-import { HourlyWeather, Heatpump, Row } from '../types'
-import { FuelType } from '../hooks/useFormState/hook'
+import { FuelType, HourlyWeather, Heatpump, Row } from '../types'
+import { FUEL_CONVERSION, FUEL_UNITS, getFuelUnit, getConversionFactor, getConversionExplanation } from '../constants/fuel'
+
+export {
+    getFuelUnit,
+    getConversionFactor,
+    getConversionExplanation
+}
+
 export const KWH_BTU = 3412
-export const cmGasToKwh = 10.55
+
+// Constants for appliance energy usage
+export const APPLIANCE_ENERGY = {
+    HOT_WATER: {
+        KWH_PER_PERSON_YEAR: 2500,
+        LITERS_PER_PERSON_YEAR: 50000
+    },
+    COOKING: {
+        KWH_PER_DAY: 2.5
+    }
+}
+
+// Hot water calculations
+export function getHotWaterKwh(people: number): number {
+    return people * APPLIANCE_ENERGY.HOT_WATER.KWH_PER_PERSON_YEAR
+}
+
+// Cooking calculations
+export function getStoveKwh(daysPerWeek: number): number {
+    return daysPerWeek * APPLIANCE_ENERGY.COOKING.KWH_PER_DAY * 52
+}
+
+// Conversion helper
+export function convertToKwh(fuelType: FuelType, quantity: number): number {
+    return quantity * FUEL_CONVERSION[fuelType]
+}
 
 export function getDesignLoadAtTemp(temp: number, indoor: number, designTemp: number, designBtu: number) {
     const designBtuPerDegree = designBtu / (indoor - designTemp)
@@ -74,22 +106,6 @@ export function getEnergySource(
         amountOfEnergyNeeded,
         effectiveCop,
     }
-}
-
-export function convertToKwh(fuelType: FuelType, quantity: number): number {
-    const conversionFactors: Record<FuelType, number> = {
-        [FuelType.NATURAL_GAS]: 10.55,
-        [FuelType.OIL]: 10.5,
-        [FuelType.PROPANE]: 7.08,
-        [FuelType.ELECTRIC]: 1,
-    }
-
-    if (!(fuelType in conversionFactors)) {
-        throw new Error('Invalid fuel type')
-    }
-
-    const conversionFactor = conversionFactors[fuelType]
-    return quantity * conversionFactor
 }
 
 export function getHoursInTempRange(

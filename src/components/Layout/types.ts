@@ -1,5 +1,4 @@
-import { FormState, Row, Heatpump, HourlyWeather } from '../../types'
-import { FuelType } from '../../hooks/useFormState/hook'
+import { FormState, Row, Heatpump, HourlyWeather, FuelType } from '../../types'
 
 export interface AppLayoutProps {
     formState: FormState

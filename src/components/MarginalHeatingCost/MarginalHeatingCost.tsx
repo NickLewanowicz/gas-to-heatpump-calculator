@@ -1,18 +1,18 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import { Card, Typography, Row, Col } from 'antd'
-import { AppContext } from '../../contexts/AppContext'
-import { MarginalHeatingCostProps } from '../../types'
+import { useApp } from '../../context/AppContext'
+import type { Heatpump } from '../../types'
 
 const { Text } = Typography
 
-export const MarginalHeatingCost: React.FC<MarginalHeatingCostProps> = () => {
+export const MarginalHeatingCost: React.FC = () => {
     const {
-        electricityRate,
-        gasRate,
+        costKwh: electricityRate,
+        costGas: gasRate,
         furnaceEfficiency,
         heatpumps,
-        selectedHeatpump
-    } = useContext(AppContext)
+        selected: selectedHeatpump
+    } = useApp()
 
     return (
         <div style={{ width: '100%', height: '100%' }}>

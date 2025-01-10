@@ -43,11 +43,11 @@ export function useWeatherData(city: CityName, seasonView: SeasonView, year: num
 
     useEffect(() => {
         if (weather.length > 0) {
-            const yearStart = seasonView === 'calendar'
+            const yearStart = seasonView === 'year'
                 ? new Date(`${year}-01-01`)
                 : new Date(`${year}-09-01`)
 
-            const yearEnd = seasonView === 'calendar'
+            const yearEnd = seasonView === 'year'
                 ? new Date(`${year}-12-31`)
                 : new Date(`${year + 1}-08-31`)
 

@@ -1,83 +1,67 @@
-import { useState, Dispatch, SetStateAction } from 'react'
-import { SeasonView } from 'types'
+import { Dispatch, SetStateAction, useState } from 'react'
+import { FuelType, SeasonView } from '../../types'
+import { DEFAULTS } from '../../constants/defaults'
 
 interface FormState {
+  city: string
+  setCity: Dispatch<SetStateAction<string>>
+  year: number
+  setYear: Dispatch<SetStateAction<number>>
+  seasonView: SeasonView
+  setSeasonView: Dispatch<SetStateAction<SeasonView>>
+  costGas: number
+  setCostGas: Dispatch<SetStateAction<number>>
+  costKwh: number
+  setCostKwh: Dispatch<SetStateAction<number>>
+  fuelUsage: number
+  setFuelUsage: Dispatch<SetStateAction<number>>
+  furnaceEfficiency: number
+  setFurnaceEfficiency: Dispatch<SetStateAction<number>>
+  fuelType: FuelType
+  setFuelType: Dispatch<SetStateAction<FuelType>>
   indoor: number
   setIndoor: Dispatch<SetStateAction<number>>
   designTemp: number
   setDesignTemp: Dispatch<SetStateAction<number>>
   designBtu: number
   setDesignBtu: Dispatch<SetStateAction<number>>
-  gasUsage: number
-  setGasUsage: Dispatch<SetStateAction<number>>
-  city: string
-  setCity: Dispatch<SetStateAction<string>>
-  furnaceEfficiency: number
-  setFurnaceEfficiency: Dispatch<SetStateAction<number>>
-  costGas: number
-  setCostGas: Dispatch<SetStateAction<number>>
-  costKwh: number
-  setCostKwh: Dispatch<SetStateAction<number>>
-  selected: number
-  setSelected: Dispatch<SetStateAction<number>>
-  fuelUsage: number
-  setFuelUsage: Dispatch<SetStateAction<number>>
-  fuelType: FuelType
-  setFuelType: Dispatch<SetStateAction<FuelType>>
-  year: number
-  setYear: Dispatch<SetStateAction<number>>
-  seasonView: SeasonView
-  setSeasonView: Dispatch<SetStateAction<SeasonView>>
-}
-
-export enum FuelType {
-  NATURAL_GAS = "Natural Gas",
-  OIL = "Oil",
-  PROPANE = "Propane",
-  ELECTRIC = "Electric"
 }
 
 export function useFormState(): FormState {
-  const [indoor, setIndoor] = useState(22)
-  const [designTemp, setDesignTemp] = useState(-30)
-  const [designBtu, setDesignBtu] = useState(48000)
-  const [fuelType, setFuelType] = useState<FuelType>(FuelType.NATURAL_GAS)
-  const [gasUsage, setGasUsage] = useState(1300)
-  const [city, setCity] = useState('Ottawa')
-  const [furnaceEfficiency, setFurnaceEfficiency] = useState(0.96)
-  const [costGas, setCostGas] = useState(0.45)
-  const [costKwh, setCostKwh] = useState(0.1)
-  const [selected, setSelected] = useState(0)
-  const [fuelUsage, setFuelUsage] = useState(1300)
-  const [year, setYear] = useState(2022)
-  const [seasonView, setSeasonView] = useState<SeasonView>('heating')
+  const [city, setCity] = useState<string>(DEFAULTS.CITY)
+  const [year, setYear] = useState<number>(DEFAULTS.YEAR)
+  const [seasonView, setSeasonView] = useState<SeasonView>(DEFAULTS.SEASON_VIEW)
+  const [costGas, setCostGas] = useState<number>(DEFAULTS.COST_GAS)
+  const [costKwh, setCostKwh] = useState<number>(DEFAULTS.COST_ELECTRICITY)
+  const [fuelUsage, setFuelUsage] = useState<number>(DEFAULTS.FUEL_USAGE)
+  const [furnaceEfficiency, setFurnaceEfficiency] = useState<number>(DEFAULTS.FURNACE_EFFICIENCY)
+  const [fuelType, setFuelType] = useState<FuelType>(DEFAULTS.FUEL_TYPE)
+  const [indoor, setIndoor] = useState<number>(DEFAULTS.INDOOR_TEMP)
+  const [designTemp, setDesignTemp] = useState<number>(DEFAULTS.DESIGN_TEMP)
+  const [designBtu, setDesignBtu] = useState<number>(DEFAULTS.DESIGN_BTU)
 
   return {
+    city,
+    setCity,
+    year,
+    setYear,
+    seasonView,
+    setSeasonView,
+    costGas,
+    setCostGas,
+    costKwh,
+    setCostKwh,
+    fuelUsage,
+    setFuelUsage,
+    furnaceEfficiency,
+    setFurnaceEfficiency,
+    fuelType,
+    setFuelType,
     indoor,
     setIndoor,
     designTemp,
     setDesignTemp,
     designBtu,
     setDesignBtu,
-    gasUsage,
-    setGasUsage,
-    city,
-    setCity,
-    furnaceEfficiency,
-    setFurnaceEfficiency,
-    costGas,
-    setCostGas,
-    costKwh,
-    setCostKwh,
-    selected,
-    setSelected,
-    fuelType,
-    setFuelType,
-    fuelUsage,
-    setFuelUsage,
-    year,
-    setYear,
-    seasonView,
-    setSeasonView
   }
 }

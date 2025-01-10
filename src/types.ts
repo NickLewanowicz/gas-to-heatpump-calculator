@@ -154,7 +154,7 @@ export interface YearRange {
     endYear: number
 }
 
-export type SeasonView = 'calendar' | 'heating'
+export type SeasonView = 'heating' | 'year'
 
 export interface MarginalHeatingCostProps {
     // Empty for now as it uses context

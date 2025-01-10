@@ -54,10 +54,8 @@ type AppContextType = {
     getRows: (thresholds: number[], weather: any[], heatpump: Heatpump, indoor: number, designTemp: number, designBtu: number) => Row[]
     convertToKwh: (fuelType: FuelType, amount: number) => number
     // Temperature settings
-    baseTemp: number
-    setBaseTemp: (value: number) => void
-    reducedTemp: number
-    setReducedTemp: (value: number) => void
+    setbackTemp: number
+    setSetbackTemp: (value: number) => void
     setbackType: '24/7' | 'overnight'
     setSetbackType: (type: '24/7' | 'overnight') => void
     startTime: Dayjs | null
@@ -82,8 +80,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } = useHeatpumps([initialHeatpump])
 
     // Temperature settings
-    const [baseTemp, setBaseTemp] = useState(21)
-    const [reducedTemp, setReducedTemp] = useState(19)
+    const [setbackTemp, setSetbackTemp] = useState(2)
     const [setbackType, setSetbackType] = useState<'24/7' | 'overnight'>('24/7')
     const [startTime, setStartTime] = useState<Dayjs | null>(dayjs().hour(22).minute(0))
     const [endTime, setEndTime] = useState<Dayjs | null>(dayjs().hour(6).minute(0))
@@ -176,10 +173,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         getRows,
         convertToKwh,
         // Temperature settings
-        baseTemp,
-        setBaseTemp,
-        reducedTemp,
-        setReducedTemp,
+        setbackTemp,
+        setSetbackTemp,
         setbackType,
         setSetbackType,
         startTime,
