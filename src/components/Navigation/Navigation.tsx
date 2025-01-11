@@ -20,14 +20,14 @@ export const Navigation = () => {
             icon: <CalculatorOutlined />,
         },
         {
-            key: '/marginal',
-            label: <Link to="/marginal">Marginal Heating Cost</Link>,
-            icon: <LineChartOutlined />,
-        },
-        {
             key: '/breakeven',
             label: <Link to="/breakeven">Breakeven Analysis</Link>,
             icon: <DollarOutlined />,
+        },
+        {
+            key: '/marginal',
+            label: <Link to="/marginal">Marginal Heating Cost</Link>,
+            icon: <LineChartOutlined />,
         },
     ]
 
