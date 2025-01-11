@@ -135,10 +135,6 @@ export const Breakeven = () => {
                             </Space>
 
                             <Descriptions column={{ xs: 1, sm: 2, md: 3 }} size="small">
-                                <Descriptions.Item label="Location">{city}</Descriptions.Item>
-                                <Descriptions.Item label="Time Period">
-                                    {seasonView === 'heating' ? 'Heating Season' : 'Calendar Year'} {year}
-                                </Descriptions.Item>
                                 <Descriptions.Item label="Current System">
                                     {fuelType} ({(furnaceEfficiency * 100).toFixed(0)}% efficient)
                                 </Descriptions.Item>
@@ -345,6 +341,20 @@ export const Breakeven = () => {
                         </Card>
                     </Space>
                 </Space>
+                <div style={{
+                    marginTop: '24px',
+                    marginBottom: '24px',
+                    padding: '24px',
+                    textAlign: 'center',
+                    borderTop: '1px solid #f0f0f0',
+                    color: 'rgba(0, 0, 0, 0.45)'
+                }}>
+                    <Space direction="vertical" size="small">
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                            Calculations based on current energy rates and system efficiencies
+                        </Text>
+                    </Space>
+                </div>
             </div>
         </div>
     )
