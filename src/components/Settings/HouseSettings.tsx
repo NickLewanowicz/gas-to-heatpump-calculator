@@ -19,7 +19,8 @@ export const HouseSettings = () => {
         fuelUsage, setFuelUsage,
         seasonView, setSeasonView,
         year, setYear,
-        weather
+        weather,
+        customerCharge, setCustomerCharge
     } = useApp()
 
     const getUnits = (fuelType: string) => {
@@ -89,6 +90,22 @@ export const HouseSettings = () => {
                                 setCostKwh(value || 0)  // Keep electric rates in sync
                             }
                         }}
+                        style={{ width: '100%' }}
+                    />
+                </Form.Item>
+
+                <Form.Item
+                    label="Monthly Customer Charge"
+                    tooltip={{ title: "Fixed monthly fee charged by your utility company", icon: <InfoCircleOutlined /> }}
+                >
+                    <InputNumber
+                        value={customerCharge}
+                        onChange={value => setCustomerCharge(value || 26)}
+                        min={0}
+                        step={1}
+                        precision={2}
+                        prefix="$"
+                        addonAfter="/month"
                         style={{ width: '100%' }}
                     />
                 </Form.Item>

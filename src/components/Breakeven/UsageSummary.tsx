@@ -42,7 +42,7 @@ export const UsageSummary: React.FC<UsageSummaryProps> = ({
     return (
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
             {/* Individual Appliance Breakdown */}
-            {breakdown.map(item => (
+            {/* {breakdown.map(item => (
                 <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Text strong>{item.name}</Text>
                     <Space direction="vertical" align="end">
@@ -50,7 +50,7 @@ export const UsageSummary: React.FC<UsageSummaryProps> = ({
                         <Text type="secondary">Electric: {item.electricKwh.toFixed(0)} kWh</Text>
                     </Space>
                 </div>
-            ))}
+            ))} */}
 
             <Divider style={{ margin: '8px 0' }} />
 

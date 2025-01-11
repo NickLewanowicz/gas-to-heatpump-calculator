@@ -13,7 +13,7 @@ export const KWH_BTU = 3412
 export const APPLIANCE_ENERGY = {
     HOT_WATER: {
         KWH_PER_PERSON_YEAR: 2500,
-        LITERS_PER_PERSON_YEAR: 50000
+        LITERS_PER_PERSON_YEAR: 27375  // 109,500L/year for family of 4 = 27,375L per person
     },
     COOKING: {
         KWH_PER_DAY: 2.5

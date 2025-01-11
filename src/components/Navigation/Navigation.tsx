@@ -26,9 +26,8 @@ export const Navigation = () => {
         },
         {
             key: '/breakeven',
-            label: "Breakeven Analysis (Coming Soon)",
+            label: "Breakeven Analysis",
             icon: <DollarOutlined />,
-            disabled: true,
         },
     ]
 

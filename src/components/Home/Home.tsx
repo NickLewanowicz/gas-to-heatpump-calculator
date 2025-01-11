@@ -70,16 +70,16 @@ export const Home = () => {
                                     Breakeven Analysis
                                 </Space>
                             }
-                            extra={<Button type="link" disabled>Coming Soon</Button>}
+                            extra={<Link to="/breakeven"><Button type="link">Open</Button></Link>}
                         >
                             <Paragraph>
-                                Coming soon - Analyze the long-term financial impact:
+                                Compare operating costs across different appliances:
                             </Paragraph>
                             <ul>
-                                <li>Calculate payback period</li>
-                                <li>Compare installation costs</li>
-                                <li>Evaluate financing options</li>
-                                <li>Project long-term savings</li>
+                                <li>Space heating cost comparison</li>
+                                <li>Hot water heating analysis</li>
+                                <li>Cooking appliance comparison</li>
+                                <li>Monthly cost breakdown</li>
                             </ul>
                         </Card>
                     </Col>

@@ -30,6 +30,8 @@ type AppContextType = {
     setCostGas: (value: number) => void
     costKwh: number
     setCostKwh: (value: number) => void
+    customerCharge: number
+    setCustomerCharge: (value: number) => void
     fuelType: FuelType
     setFuelType: (type: FuelType) => void
     fuelUsage: number
@@ -84,6 +86,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const [setbackType, setSetbackType] = useState<'24/7' | 'overnight'>('24/7')
     const [startTime, setStartTime] = useState<Dayjs | null>(dayjs().hour(22).minute(0))
     const [endTime, setEndTime] = useState<Dayjs | null>(dayjs().hour(6).minute(0))
+    const [customerCharge, setCustomerCharge] = useState<number>(26)
 
     const {
         indoor,
@@ -149,6 +152,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCostGas,
         costKwh,
         setCostKwh,
+        customerCharge,
+        setCustomerCharge,
         fuelType,
         setFuelType,
         fuelUsage,
