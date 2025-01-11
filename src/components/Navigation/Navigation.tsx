@@ -26,7 +26,7 @@ export const Navigation = () => {
         },
         {
             key: '/breakeven',
-            label: "Breakeven Analysis",
+            label: <Link to="/breakeven">Breakeven Analysis</Link>,
             icon: <DollarOutlined />,
         },
     ]
